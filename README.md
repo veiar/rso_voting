@@ -1,6 +1,6 @@
-# rso_voting
+Ôªø# rso_voting
 #
-# Projekt rozproszonego systemu obs≥ugujπcego g≥osowanie.
+# Projekt rozproszonego systemu obs≈ÇugujƒÖcego g≈Çosowanie.
 #
 # Projekt realizowany w ramach przedmiotu Rozproszone Systemy Operacyjne
 # Semestr 16L
