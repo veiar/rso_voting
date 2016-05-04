@@ -24,7 +24,6 @@ public class DnsController {
 
     @PostConstruct
     public void init() throws IOException {
-        System.out.println(System.getProperty("user.dir"));
         InputStream inputStream = new FileInputStream("src/main/resources/application.properties");
         final Properties prop = new Properties();
         prop.load(inputStream);
