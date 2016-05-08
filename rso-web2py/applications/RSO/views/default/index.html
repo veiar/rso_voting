@@ -1,4 +1,5 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{response.files.append(URL('static','js/Canvasjs.min.js'))}}
 {{response.files.append(URL('static','js/Chart.js'))}}
 {{response.files.append(URL('static','js/rso.js'))}}
 {{extend 'layout.html'}}
@@ -14,28 +15,13 @@
     </header>
 {{end}}
 
-<canvas id="myChart" width="400" height="400"></canvas>
+<button type="button" class="btn btn-primary btn-primary-outline" style="width: 100px" onClick="showColumnChart()">Słupkowy</button>
+<button type="button" class="btn btn-success btn-secondary-outline" style="width: 100px" onClick="ShowPieChart()">Kołowy</button>
 
-{{if 'message' in globals():}}
-<h2>{{=message}}</h2>
-<p class="lead">{{=T('How did you get here?')}}</p>
-<ol>
-  <li>{{=T('You are successfully running web2py')}}</li>
-  <li>{{=XML(T('You visited the url %s', A(request.env.path_info,_href=request.env.path_info)))}}</li>
-  <li>{{=XML(T('Which called the function %s located in the file %s',
-    (A(request.function+'()',_href='#'),
-    A('web2py/applications/%(application)s/controllers/%(controller)s.py' % request,
-    _href=URL('admin','default','peek', args=(request.application,'controllers',request.controller+'.py'))))))}}</li>
-  <li>{{=XML(T('The output of the file is a dictionary that was rendered by the view %s',
-    A('web2py/applications/%(application)s/views/%(controller)s/index.html' % request,
-    _href=URL('admin','default','peek',args=(request.application,'views',request.controller,'index.html')))))}}</li>
-  <li>{{=T('You can modify this application and adapt it to your needs')}}</li>
-</ol>
-{{elif 'content' in globals():}}
-{{=content}}
-{{else:}}
-{{=BEAUTIFY(response._vars)}}
-{{pass}}
+<div>
+    <canvas id="columnChart" width="200" height="200"></canvas>
+</div>
+  <div id="pieChart" style="height: 500px; width: 50%;"></div>
 
 {{block right_sidebar}}
 <div class="panel panel-info">
@@ -50,7 +36,7 @@
 
     <li class="list-group-item">
         <div class="btn-group">
-          <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:400px">
+          <button type="button" class="btn btn-info dropdown-toggle " data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:400px">
             Kandydat
           </button>
           <div class="dropdown-menu">
