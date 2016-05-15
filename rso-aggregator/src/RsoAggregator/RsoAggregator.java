@@ -7,13 +7,13 @@ import DBHandler.PostgresHandler;
 public class RsoAggregator {
     public static void main(String[] args){
         MongoHandler mongoDB = null;
-        PostgresHandler post = null;
+        PostgresHandler postDB = null;
 
         try {
             mongoDB = new MongoHandler();
             mongoDB.test();
-            post = new PostgresHandler();
-
+            postDB = new PostgresHandler();
+            postDB.insert(1, "trololo");
         }
         catch(Exception e){
             e.printStackTrace();
@@ -24,8 +24,8 @@ public class RsoAggregator {
                     mongoDB.close();
                     System.out.println("MongoDB connection closed...");
                 }
-                if (post != null){
-                    post.close();
+                if (postDB != null){
+                    postDB.close();
                     System.out.println("Postgres connection closed...");
                 }
             }

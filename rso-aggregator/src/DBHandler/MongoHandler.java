@@ -36,11 +36,12 @@ public class MongoHandler {
         iterable.forEach(new Block<Document>() {
             @Override
             public void apply(final Document document) {
-
                 String temp = (String)document.get("title");
                 System.out.println(temp);
+
             }
         });
+
         /*Document obj = new Document("title", "test1")
                 .append("asd", "cda");
         mongoDB.getCollection("testColl").insertOne(obj);*/
