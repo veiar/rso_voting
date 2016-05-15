@@ -1,18 +1,19 @@
 package com.mac.rso
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 import akka.actor.Status.Success
 import akka.io.Tcp
 import akka.util.ByteString
+import com.mac.rso.Messages2PC.Vote
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.MongoDatabase
 import org.mongodb.scala._
 import org.mongodb.scala.result.DeleteResult
-import scala.concurrent.{Future, Await}
+
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.util.parsing.json.{JSON, JSONObject}
 
 /**
@@ -30,6 +31,8 @@ class DbAgentActor extends Actor {
   var txId: Option[String] = None
 
   def receive = {
+    case Vote(jsonObj) =>
+      println("VOTE_RECEIVED!!!")
     case Received(data) =>
       println("received")
       JSON.parseFull(data.decodeString("UTF-8")) match {

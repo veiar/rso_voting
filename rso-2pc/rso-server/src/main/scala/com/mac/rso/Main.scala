@@ -7,7 +7,7 @@ import akka.actor.{Props, ActorSystem}
   */
 object Main extends App {
 
-  val port = args(0).toInt
+  val port = 8881
 
   val system: ActorSystem = ActorSystem()
 

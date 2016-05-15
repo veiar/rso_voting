@@ -12,5 +12,6 @@ libraryDependencies ++= Seq(
   "org.mongodb.scala" %% "mongo-scala-driver" % "1.1.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3")
 
-//mainClass in (Compile,run) := Some("com.mac.rso.Main")
+lazy val common = RootProject(file("../common"))
+lazy val project = Project(id = "rso-server", base = file("./")) dependsOn (common)
 
