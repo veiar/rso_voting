@@ -7,6 +7,6 @@ object Messages2PC {
 
   trait Message2PC extends Serializable
 
-  case class Vote(jsonObj: String) extends Message2PC
+  case class Vote(jsonObj: String) extends Message2PC with Serializable
 
 }
