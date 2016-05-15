@@ -102,7 +102,7 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
       }
 
       // wylosuj hosty
-      val dbHostsIndicies = scala.util.Random.shuffle(potentialDbsIndicies).toSeq.take(leftToCommitCount)
+      val dbHostsIndicies = scala.util.Random.shuffle(potentialDbsIndicies).take(leftToCommitCount)
 
       // usuń wylosowane z puli potencjalnych
       potentialDbsIndicies = potentialDbsIndicies.filterNot(dbHostsIndicies.contains(_))
@@ -118,7 +118,7 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
             actor ? Vote recover {
               case e: TimeoutException => CommitActor.UnknownError
             } map { response => actor -> response }
-        } toList)
+        })
 
       val requestResponses = Await.result(responsesFutures, Duration.Inf)
 
