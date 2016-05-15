@@ -80,7 +80,7 @@ class CommitActor(dbHostUrl: String, documents: List[Map[String, Any]], txId: St
 
       context become {
         case Received(data) =>
-          JSON.parseFull(data.utf8String).cast[Map[String, Any]] match {
+          JSON.parseFull(data.utf8String).get.cast[Map[String, Any]] match {
             case Some(response) =>
               response.get("command") match {
                 case Some(Messages2PC.VOTE_OK) =>
