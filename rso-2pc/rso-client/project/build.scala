@@ -30,14 +30,15 @@ object RsoClientBuild extends Build {
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
         "org.mongodb.scala" %% "mongo-scala-driver" % "1.1.0",
         "org.json4s" %% "json4s-jackson" % "3.3.0",
-        "org.json4s" % "json4s-native_2.11" % "3.3.0",
-        "ch.qos.logback" % "logback-classic" % "1.1.5" % "runtime",
+        "org.json4s" %% "json4s-native" % "3.3.0",
+        "ch.qos.logback" % "logback-core" % "1.1.7",
+        "ch.qos.logback" % "logback-classic" % "1.1.7",
+        "org.slf4j" % "slf4j-api" % "1.7.21",
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
         "org.eclipse.jetty" % "jetty-webapp" % "9.2.15.v20160210" % "container;compile",
         "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
         "com.typesafe" % "config" % "1.3.0",
-        "com.chuusai" %% "shapeless" % "2.3.1",
-        "ch.qos.logback" %  "logback-classic" % "1.1.7",
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0"
+        "com.chuusai" %% "shapeless" % "2.3.1"
       ),
       javaOptions ++= Seq(
         "-Xdebug",

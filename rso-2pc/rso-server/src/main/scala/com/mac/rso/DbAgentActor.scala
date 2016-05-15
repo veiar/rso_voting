@@ -37,7 +37,7 @@ class DbAgentActor extends Actor {
   def receive = {
     case Received(data) =>
       logger.debug("data received")
-      JSON.parseFull(data.utf8String).cast[Map[String, Any]] match {
+      JSON.parseFull(data.utf8String).get.cast[Map[String, Any]] match {
         case Some(obj) =>
           obj.get("command") match {
             case Some(Messages2PC.VOTE) =>
@@ -74,7 +74,7 @@ class DbAgentActor extends Actor {
           }
 
         case _ =>
-          throw new IllegalStateException("unknown message: " + data.toString())
+          throw new IllegalStateException("unknown message: " + JSON.parseFull(data.utf8String))
       }
     case PeerClosed =>
       context stop self
