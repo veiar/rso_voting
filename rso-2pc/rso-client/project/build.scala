@@ -3,9 +3,9 @@ import org.scalatra.sbt._
 import sbt.Keys._
 import sbt._
 
-object Rso3Build extends Build {
+object RsoClientBuild extends Build {
   val Organization = "com.mac"
-  val Name = "RSO3"
+  val Name = "rso-client"
   val Version = "0.1.0-SNAPSHOT"
   val ScalaVersion = "2.11.8"
   val ScalatraVersion = "2.4.0"
@@ -13,7 +13,7 @@ object Rso3Build extends Build {
   lazy val common = RootProject(file("../common"))
 
   lazy val project = Project(
-    "rso3",
+    "rso-client",
     file("."),
     settings = ScalatraPlugin.scalatraSettings ++ Seq(
       organization := Organization,
