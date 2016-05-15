@@ -15,5 +15,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0")
 
 lazy val common = RootProject(file("../common"))
-lazy val project = Project(id = "rso-server", base = file("./")) dependsOn (common)
+lazy val project = Project(id = "rso-server", base = file("./")) dependsOn common
 
