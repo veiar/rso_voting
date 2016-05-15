@@ -7,6 +7,13 @@ object Messages2PC {
 
   trait Message2PC extends Serializable
 
-  case class Vote(jsonObj: String) extends Message2PC with Serializable
+  val VOTE = "vote"
 
+  val VOTE_OK = "vote_ok"
+
+  val ACK = "ack"
+
+  val COMMIT = "commit"
+
+  val ROLLBACK = "rollback"
 }

@@ -19,6 +19,7 @@ import com.mac.rso.CommitActor.Messages._
 object CommitActor {
 
   object Messages {
+
     trait Message
 
     case object VoteOk extends Message
@@ -34,6 +35,7 @@ object CommitActor {
     case object Ack extends Message
 
     case object UnknownError extends Message
+
   }
 
 }
@@ -63,7 +65,7 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
       val connection = sender()
       connection ! Register(self)
 
-      val command: JSONObject = JSONObject(Map("command" -> "vote", "txId" -> txId, "object" -> document.toJson))
+      val command: JSONObject = JSONObject(Map("command" -> Messages2PC.VOTE, "txId" -> txId, "object" -> document.toJson))
 
       connection ! Write(ByteString(command.toString(), "UTF-8"))
 
@@ -72,10 +74,10 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
           JSON.parseFull(data.utf8String) match {
             case Some(response: Map[String, Any]) =>
               response.get("command") match {
-                case Some("vote_ok") =>
+                case Some(Messages2PC.VOTE_OK) =>
                   println("received VoteOk!!")
                   listener.get ! VoteOk
-                case Some("ack") =>
+                case Some(Messages2PC.ACK) =>
                   println("received ack!!")
                   listener.get ! Ack
                 case _ =>
@@ -89,12 +91,12 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
 
         case Commit =>
           listener = Some(sender())
-          val command: JSONObject = JSONObject(Map("command" -> "commit"))
+          val command: JSONObject = JSONObject(Map("command" -> Messages2PC.COMMIT))
           connection ! Write(ByteString(command.toString(), "UTF-8"))
 
         case Rollback =>
           listener = Some(sender())
-          val command: JSONObject = JSONObject(Map("command" -> "rollback"))
+          val command: JSONObject = JSONObject(Map("command" -> Messages2PC.ROLLBACK))
           connection ! Write(ByteString(command.toString(), "UTF-8"))
           listener.get ! Ack
       }
