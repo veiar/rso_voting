@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-jackson" % "3.3.0",
   "org.mongodb.scala" %% "mongo-scala-driver" % "1.1.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
+  "com.chuusai" %% "shapeless" % "2.3.1",
   "ch.qos.logback" % "logback-classic" % "1.1.7",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0")
 

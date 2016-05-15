@@ -1,14 +1,15 @@
 package com.mac.rso
 
 import java.net.InetSocketAddress
-import shapeless.syntax.typeable._
-import shapeless.syntax.typeable._
 
+import shapeless.syntax.typeable._
 import akka.actor.{Actor, ActorRef}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
 import com.mac.rso.CommitActor.Messages._
+import com.typesafe.scalalogging.Logger
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.slf4j.LoggerFactory
 
 import scala.util.parsing.json.{JSON, JSONObject}
 
@@ -44,6 +45,8 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
   import Tcp._
   import context.system
 
+  val logger = Logger(LoggerFactory.getLogger(classOf[CommitActor].getName))
+
   val hostname = dbHostUrl.split(":")(0)
   val port = dbHostUrl.split(":")(1).toInt
 
@@ -56,7 +59,7 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
       IO(Tcp) ! Connect(remote)
 
     case CommandFailed(_: Connect) =>
-      println("connection failed")
+      logger.debug("connection failed")
       listener.get ! VoteError
       context stop self
 
@@ -74,17 +77,17 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
             case Some(response) =>
               response.get("command") match {
                 case Some(Messages2PC.VOTE_OK) =>
-                  println("received VoteOk!!")
+                  logger.debug("received VoteOk!!")
                   listener.get ! VoteOk
                 case Some(Messages2PC.ACK) =>
-                  println("received ack!!")
+                  logger.debug("received ack!!")
                   listener.get ! Ack
                 case _ =>
-                  println("unknown response")
+                  logger.debug("unknown response")
                   listener.get ! UnknownError
               }
             case _ =>
-              println("unknown response")
+              logger.debug("unknown response")
               listener.get ! UnknownError
           }
 

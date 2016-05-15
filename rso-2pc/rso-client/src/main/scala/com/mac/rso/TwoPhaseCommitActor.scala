@@ -11,6 +11,8 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import akka.pattern.pipe
 import com.mac.rso.CommitActor.Messages
 import com.mac.rso.CommitActor.Messages._
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -36,6 +38,8 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
   val conf = ConfigFactory.load()
   val dbHostsConf = conf.getConfigList("db-nodes") map (_.getString("url"))
   val minDbsCount = conf.getInt("min-dbs-count")
+
+  val logger = Logger(LoggerFactory.getLogger(classOf[TwoPhaseCommitActor].getName))
 
   protected implicit val timeout = new Timeout(2 seconds)
 
@@ -79,14 +83,13 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
           TwoPhaseCommitActor.Ok
         } catch {
           case e: Exception =>
-            e.printStackTrace()
-            println("rollback...")
+            logger.error("commit error, rolling back", e)
             rollback(actorsCommiting)
             TwoPhaseCommitActor.Error
         }
       } recover {
         case e: Exception =>
-          e.printStackTrace()
+          logger.error("unknown error", e)
           TwoPhaseCommitActor.Error
       } pipeTo sender()
   }

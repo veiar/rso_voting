@@ -11,6 +11,7 @@ import org.mongodb.scala.MongoDatabase
 import org.mongodb.scala._
 import org.mongodb.scala.result.DeleteResult
 import org.slf4j.LoggerFactory
+import shapeless.syntax.typeable._
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -36,10 +37,10 @@ class DbAgentActor extends Actor {
   def receive = {
     case Received(data) =>
       logger.debug("data received")
-      JSON.parseFull(data.decodeString("UTF-8")) match {
-        case Some(obj: Map[String, Any]) =>
+      JSON.parseFull(data.utf8String).cast[Map[String, Any]] match {
+        case Some(obj) =>
           obj.get("command") match {
-            case Some("vote") =>
+            case Some(Messages2PC.VOTE) =>
               val replyTo = sender()
               logger.debug("vote command received, replying voteOk")
               jsonToSave = obj.get("object") match {
@@ -51,7 +52,7 @@ class DbAgentActor extends Actor {
               }
 
               respond(replyTo, "vote_ok")
-            case Some("commit") =>
+            case Some(Messages2PC.COMMIT) =>
               val replyTo = sender()
               logger.debug("commit received")
               dbsave() onSuccess {
@@ -60,7 +61,7 @@ class DbAgentActor extends Actor {
                   respond(replyTo, "ack")
               }
 
-            case Some("rollback") =>
+            case Some(Messages2PC.ROLLBACK) =>
               val replyTo = sender()
               logger.debug("rollback received")
               rollback() onSuccess {
