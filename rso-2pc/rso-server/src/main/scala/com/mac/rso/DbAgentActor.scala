@@ -4,12 +4,13 @@ import akka.actor.{Actor, ActorRef}
 import akka.actor.Status.Success
 import akka.io.Tcp
 import akka.util.ByteString
-import com.mac.rso.Messages2PC.Vote
+import com.typesafe.scalalogging.Logger
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.MongoDatabase
 import org.mongodb.scala._
 import org.mongodb.scala.result.DeleteResult
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -30,17 +31,17 @@ class DbAgentActor extends Actor {
   var jsonToSave: Option[String] = None
   var txId: Option[String] = None
 
+  val logger = Logger(LoggerFactory.getLogger(classOf[DbAgentActor].getName))
+
   def receive = {
-    case Vote(jsonObj) =>
-      println("VOTE_RECEIVED!!!")
     case Received(data) =>
-      println("received")
+      logger.debug("data received")
       JSON.parseFull(data.decodeString("UTF-8")) match {
         case Some(obj: Map[String, Any]) =>
           obj.get("command") match {
             case Some("vote") =>
               val replyTo = sender()
-              println("vote command received, replying voteOk")
+              logger.debug("vote command received, replying voteOk")
               jsonToSave = obj.get("object") match {
                 case Some(s: String) => Some(s)
               }
@@ -52,31 +53,30 @@ class DbAgentActor extends Actor {
               respond(replyTo, "vote_ok")
             case Some("commit") =>
               val replyTo = sender()
-              println("commit received")
+              logger.debug("commit received")
               dbsave() onSuccess {
                 case _ =>
-                  println("commit successful")
+                  logger.debug("commit successful")
                   respond(replyTo, "ack")
               }
 
             case Some("rollback") =>
               val replyTo = sender()
-              println("rollback received")
+              logger.debug("rollback received")
               rollback() onSuccess {
                 case _ =>
-                  println("rollback successful")
+                  logger.debug("rollback successful")
                   respond(replyTo, "ack")
               }
           }
 
         case _ =>
-          println("unknown message")
-          println(data.toString())
+          throw new IllegalStateException("unknown message: " + data.toString())
       }
     case PeerClosed =>
       context stop self
     case _ =>
-      println("unknown message")
+      logger.debug("unknown message")
   }
 
   def respond(replyTo: ActorRef, response: String): Unit = {
