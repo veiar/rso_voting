@@ -33,7 +33,7 @@ object TwoPhaseCommitActor {
 
 }
 
-class TwoPhaseCommitActor(txId: String) extends Actor {
+class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) extends Actor {
 
   val conf = ConfigFactory.load()
   val dbHostsConf = conf.getConfigList("db-nodes") map (_.getString("url"))
@@ -43,8 +43,24 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
 
   protected implicit val timeout = new Timeout(2 seconds)
 
-  override def preStart(): Unit = {
-
+  override def receive: Receive = {
+    case "go" =>
+      Future {
+        val actorsCommiting: List[ActorRef] = selectActorsForCommit(documents)
+        try {
+          commitTransaction(actorsCommiting)
+          TwoPhaseCommitActor.Ok
+        } catch {
+          case e: Exception =>
+            logger.error("commit error, rolling back", e)
+            rollback(actorsCommiting)
+            TwoPhaseCommitActor.Error
+        }
+      } recover {
+        case e: Exception =>
+          logger.error("unknown error", e)
+          TwoPhaseCommitActor.Error
+      } pipeTo sender()
   }
 
   def commitTransaction(actorsCommiting: List[ActorRef]) = {
@@ -74,27 +90,7 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
     }
   }
 
-  override def receive: Receive = {
-    case document: Document =>
-      Future {
-        val actorsCommiting: List[ActorRef] = selectActorsForCommit(document)
-        try {
-          commitTransaction(actorsCommiting)
-          TwoPhaseCommitActor.Ok
-        } catch {
-          case e: Exception =>
-            logger.error("commit error, rolling back", e)
-            rollback(actorsCommiting)
-            TwoPhaseCommitActor.Error
-        }
-      } recover {
-        case e: Exception =>
-          logger.error("unknown error", e)
-          TwoPhaseCommitActor.Error
-      } pipeTo sender()
-  }
-
-  def selectActorsForCommit(document: Document): List[ActorRef] = {
+  def selectActorsForCommit(documents: List[Map[String, Any]]): List[ActorRef] = {
     var potentialDbsIndicies = dbHostsConf.indices.toList
     val commitingActors: mutable.MutableList[ActorRef] = mutable.MutableList[ActorRef]()
 
@@ -113,7 +109,7 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
       potentialDbsIndicies = potentialDbsIndicies.filterNot(dbHostsIndicies.contains(_))
 
       val commitActors = dbHostsIndicies.map((dbHostIdx: Int) => {
-        dbHostIdx -> context.actorOf(Props(new CommitActor(dbHostsConf.get(dbHostIdx), document, txId)))
+        dbHostIdx -> context.actorOf(Props(new CommitActor(dbHostsConf.get(dbHostIdx), documents, txId)))
       })
 
       val responsesFutures = Future.sequence(

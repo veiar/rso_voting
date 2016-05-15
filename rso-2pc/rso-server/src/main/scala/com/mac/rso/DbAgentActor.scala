@@ -29,7 +29,7 @@ class DbAgentActor extends Actor {
   val database: MongoDatabase = mongoClient.getDatabase("test")
   val votes: MongoCollection[Document] = database.getCollection("votes")
 
-  var jsonToSave: Option[String] = None
+  var documentsToSave: Option[List[String]] = None
   var txId: Option[String] = None
 
   val logger = Logger(LoggerFactory.getLogger(classOf[DbAgentActor].getName))
@@ -43,8 +43,8 @@ class DbAgentActor extends Actor {
             case Some(Messages2PC.VOTE) =>
               val replyTo = sender()
               logger.debug("vote command received, replying voteOk")
-              jsonToSave = obj.get("object") match {
-                case Some(s: String) => Some(s)
+              documentsToSave = obj.get("objects") match {
+                case Some(s: List[String]) => Some(s)
               }
 
               txId = obj.get("txId") match {
@@ -87,9 +87,11 @@ class DbAgentActor extends Actor {
   }
 
   def dbsave(): Future[Seq[Completed]] = {
-    val doc: Document = Document(jsonToSave.get)
+    val docs: List[Document] = documentsToSave.get map {
+      Document(_)
+    }
 
-    votes.insertOne(doc).toFuture()
+    votes.insertMany(docs) toFuture()
   }
 
   def rollback(): Future[Seq[DeleteResult]] = {

@@ -3,18 +3,14 @@ package com.mac.rso
 import java.util.UUID
 
 import _root_.akka.actor.{ActorSystem, Props}
+import _root_.akka.pattern.ask
 import _root_.akka.util.Timeout
 import org.mongodb.scala._
-import org.scalatra._
-import org.scalatra.FutureSupport
-import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read, write}
-import scala.concurrent.{ExecutionContext, Future}
-import _root_.akka.pattern.ask
+import org.scalatra.{FutureSupport, _}
 
 import scala.concurrent.duration._
-import scala.util.parsing.json.{JSONArray, JSONObject}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.parsing.json.JSONObject
 
 // JSON-related libraries
 import org.json4s.{DefaultFormats, Formats}
@@ -45,14 +41,13 @@ class MainServlet(system: ActorSystem) extends ScalatraServlet with JacksonJsonS
     val txId = UUID.randomUUID().toString()
 
     val jsonVotes = parsedBody.values.asInstanceOf[List[Map[String, Any]]]
-    val jsonVotesWithIds = jsonVotes.map(voteObj => voteObj
+    val jsonVotesWithIds = jsonVotes map { voteObj => (voteObj
       + ("rowId" -> UUID.randomUUID().toString())
       + ("txId" -> txId))
+    }
 
-    val doc = Document(write(jsonVotesWithIds))
-
-    val ciActor = system.actorOf(Props(new TwoPhaseCommitActor(txId)))
-    ciActor ? doc map {
+    val ciActor = system.actorOf(Props(new TwoPhaseCommitActor(txId, jsonVotesWithIds)))
+    ciActor ? "go" map {
       case TwoPhaseCommitActor.Ok =>
         "ok"
       case TwoPhaseCommitActor.Error =>

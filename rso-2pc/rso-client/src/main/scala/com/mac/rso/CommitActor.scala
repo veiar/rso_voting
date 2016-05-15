@@ -2,16 +2,17 @@ package com.mac.rso
 
 import java.net.InetSocketAddress
 
-import shapeless.syntax.typeable._
 import akka.actor.{Actor, ActorRef}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
 import com.mac.rso.CommitActor.Messages._
 import com.typesafe.scalalogging.Logger
-import org.mongodb.scala.bson.collection.immutable.Document
+import org.json4s.native.Serialization.write
 import org.slf4j.LoggerFactory
+import shapeless.syntax.typeable._
+import org.json4s.DefaultFormats
 
-import scala.util.parsing.json.{JSON, JSONObject}
+import scala.util.parsing.json.{JSON, JSONArray, JSONObject}
 
 /**
   * Created by mac on 17.04.16.
@@ -40,10 +41,13 @@ object CommitActor {
 
 }
 
-class CommitActor(dbHostUrl: String, document: Document, txId: String) extends Actor {
+class CommitActor(dbHostUrl: String, documents: List[Map[String, Any]], txId: String) extends Actor {
 
   import Tcp._
   import context.system
+
+
+  implicit val jsonFormats = DefaultFormats
 
   val logger = Logger(LoggerFactory.getLogger(classOf[CommitActor].getName))
 
@@ -67,7 +71,10 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
       val connection = sender()
       connection ! Register(self)
 
-      val command: JSONObject = JSONObject(Map("command" -> Messages2PC.VOTE, "txId" -> txId, "object" -> document.toJson))
+      val command: JSONObject = JSONObject(Map(
+        "command" -> Messages2PC.VOTE,
+        "txId" -> txId,
+        "objects" -> JSONArray(documents map { doc => write(doc) })))
 
       connection ! Write(ByteString(command.toString(), "UTF-8"))
 
