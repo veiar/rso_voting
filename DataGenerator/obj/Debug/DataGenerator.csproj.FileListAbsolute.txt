@@ -1,0 +1,11 @@
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\DataGenerator.exe.config
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\DataGenerator.exe
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\DataGenerator.pdb
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\FizzWare.NBuilder.dll
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\obj\Debug\DataGenerator.csprojResolveAssemblyReference.cache
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\obj\Debug\DataGenerator.exe
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\obj\Debug\DataGenerator.pdb
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\Newtonsoft.Json.dll
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\Newtonsoft.Json.xml
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\Faker.NET4.dll
+c:\users\asus\documents\visual studio 2015\Projects\DataGenerator\DataGenerator\bin\Debug\de-DE\Faker.NET4.resources.dll
