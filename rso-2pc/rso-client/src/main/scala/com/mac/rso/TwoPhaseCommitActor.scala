@@ -5,11 +5,13 @@ import java.util.concurrent.TimeoutException
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.mac.rso.CommitActor.{Vote, VoteOk}
 import com.mac.rso.TwoPhaseCommitActor.Result
 import com.typesafe.config.ConfigFactory
 import org.mongodb.scala.bson.collection.immutable.Document
 import akka.pattern.pipe
+import com.mac.rso.CommitActor.Messages
+import com.mac.rso.CommitActor.Messages._
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -43,27 +45,27 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
 
   def commitTransaction(actorsCommiting: List[ActorRef]) = {
     val responsesFutures = Future.sequence(actorsCommiting map {
-      _ ? CommitActor.Commit recover {
-        case e: Exception => CommitActor.UnknownError
+      _ ? Commit recover {
+        case e: Exception => Messages.UnknownError
       }
     })
     val commitResponses = Await.result(responsesFutures, Duration.Inf)
 
-    if (!commitResponses.forall(_ == CommitActor.Ack)) {
+    if (!commitResponses.forall(_ == Ack)) {
       throw new Exception("Commit failed")
     }
   }
 
   def rollback(actorsCommiting: List[ActorRef]) = {
     val responsesFutures = Future.sequence(actorsCommiting map {
-      _ ? CommitActor.Rollback recover {
-        case e: Exception => CommitActor.UnknownError
+      _ ? Rollback recover {
+        case e: Exception => Messages.UnknownError
       }
     })
 
     val commitResponses = Await.result(responsesFutures, Duration.Inf)
 
-    if (!commitResponses.forall(_ == CommitActor.Ack)) {
+    if (!commitResponses.forall(_ == Ack)) {
       throw new Exception("Rollback failed")
     }
   }
@@ -116,14 +118,14 @@ class TwoPhaseCommitActor(txId: String) extends Actor {
           case (hostIdx: Int, actor: ActorRef) =>
             val url = dbHostsConf.get(hostIdx)
             actor ? Vote recover {
-              case e: TimeoutException => CommitActor.UnknownError
+              case e: TimeoutException => Messages.UnknownError
             } map { response => actor -> response }
         })
 
       val requestResponses = Await.result(responsesFutures, Duration.Inf)
 
       val actorsVotedOk = requestResponses filter {
-        _._2 == CommitActor.VoteOk
+        _._2 == VoteOk
       } map {
         _._1
       }

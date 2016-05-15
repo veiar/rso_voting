@@ -5,34 +5,36 @@ import akka.actor.Actor.Receive
 import com.mac.rso.CommitActor._
 import org.json4s.jackson.Json
 import org.mongodb.scala.bson.collection.immutable.Document
-
 import akka.actor.{Actor, ActorRef, Props}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
 import java.net.InetSocketAddress
 
-import scala.util.parsing.json.{JSONType, JSON, JSONObject}
+import scala.util.parsing.json.{JSON, JSONObject, JSONType}
+import com.mac.rso.CommitActor.Messages._
 
 /**
   * Created by mac on 17.04.16.
   */
 object CommitActor {
 
-  trait Message
+  object Messages {
+    trait Message
 
-  case object VoteOk extends Message
+    case object VoteOk extends Message
 
-  case object VoteError extends Message
+    case object VoteError extends Message
 
-  case object Vote extends Message
+    case object Vote extends Message
 
-  case object Commit extends Message
+    case object Commit extends Message
 
-  case object Rollback extends Message
+    case object Rollback extends Message
 
-  case object Ack extends Message
+    case object Ack extends Message
 
-  case object UnknownError extends Message
+    case object UnknownError extends Message
+  }
 
 }
 
@@ -78,25 +80,23 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
                   listener.get ! Ack
                 case _ =>
                   println("unknown response")
-                  listener.get ! CommitActor.UnknownError
+                  listener.get ! UnknownError
               }
             case _ =>
               println("unknown response")
-              listener.get ! CommitActor.UnknownError
+              listener.get ! UnknownError
           }
 
-        case CommitActor.Commit =>
+        case Commit =>
           listener = Some(sender())
           val command: JSONObject = JSONObject(Map("command" -> "commit"))
           connection ! Write(ByteString(command.toString(), "UTF-8"))
 
-        case CommitActor.Rollback =>
+        case Rollback =>
           listener = Some(sender())
           val command: JSONObject = JSONObject(Map("command" -> "rollback"))
           connection ! Write(ByteString(command.toString(), "UTF-8"))
           listener.get ! Ack
       }
-
-
   }
 }

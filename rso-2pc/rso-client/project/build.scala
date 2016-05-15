@@ -10,7 +10,9 @@ object Rso3Build extends Build {
   val ScalaVersion = "2.11.8"
   val ScalatraVersion = "2.4.0"
 
-  lazy val project = Project (
+  lazy val common = RootProject(file("../common"))
+
+  lazy val project = Project(
     "rso3",
     file("."),
     settings = ScalatraPlugin.scalatraSettings ++ Seq(
@@ -27,7 +29,7 @@ object Rso3Build extends Build {
         "com.typesafe.akka" %% "akka-actor" % "2.3.4",
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
         "org.mongodb.scala" %% "mongo-scala-driver" % "1.1.0",
-        "org.json4s"   %% "json4s-jackson" % "3.3.0",
+        "org.json4s" %% "json4s-jackson" % "3.3.0",
         "ch.qos.logback" % "logback-classic" % "1.1.5" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "9.2.15.v20160210" % "container;compile",
         "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
@@ -38,5 +40,5 @@ object Rso3Build extends Build {
         "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
       )
     )
-  ).enablePlugins(JettyPlugin)
+  ).enablePlugins(JettyPlugin).dependsOn(common)
 }
