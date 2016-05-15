@@ -63,9 +63,8 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
       val connection = sender()
       connection ! Register(self)
 
-      val command: JSONObject = JSONObject(Map("command" -> "vote", "txId" -> txId, "object" -> document.toJson))
-
-      connection ! Write(ByteString(command.toString(), "UTF-8"))
+      val command = Messages2PC.Vote(document.toJson())
+      connection ! Write(ByteString(command))
 
       context become {
         case Received(data) =>
