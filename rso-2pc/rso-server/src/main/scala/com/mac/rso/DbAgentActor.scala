@@ -51,14 +51,14 @@ class DbAgentActor extends Actor {
                 case Some(s: String) => Some(s)
               }
 
-              respond(replyTo, "vote_ok")
+              respond(replyTo, Messages2PC.VOTE_OK)
             case Some(Messages2PC.COMMIT) =>
               val replyTo = sender()
               logger.debug("commit received")
               dbsave() onSuccess {
                 case _ =>
                   logger.debug("commit successful")
-                  respond(replyTo, "ack")
+                  respond(replyTo, Messages2PC.ACK)
               }
 
             case Some(Messages2PC.ROLLBACK) =>
@@ -67,7 +67,7 @@ class DbAgentActor extends Actor {
               rollback() onSuccess {
                 case _ =>
                   logger.debug("rollback successful")
-                  respond(replyTo, "ack")
+                  respond(replyTo, Messages2PC.ACK)
               }
           }
 

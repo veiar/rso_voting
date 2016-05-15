@@ -16,4 +16,6 @@ object Messages2PC {
   val COMMIT = "commit"
 
   val ROLLBACK = "rollback"
+
+  val ABORT = "abort"
 }
