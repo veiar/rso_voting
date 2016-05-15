@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="mongo-java-driver-3.0.4" level="project" />
+    <orderEntry type="library" name="postgresql-9.4.1208.jre7" level="project" />
   </component>
 </module>
