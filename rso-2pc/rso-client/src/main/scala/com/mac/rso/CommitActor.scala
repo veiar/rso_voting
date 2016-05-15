@@ -1,17 +1,16 @@
 package com.mac.rso
 
-import akka.actor.Actor
-import akka.actor.Actor.Receive
-import com.mac.rso.CommitActor._
-import org.json4s.jackson.Json
-import org.mongodb.scala.bson.collection.immutable.Document
-import akka.actor.{Actor, ActorRef, Props}
+import java.net.InetSocketAddress
+import shapeless.syntax.typeable._
+import shapeless.syntax.typeable._
+
+import akka.actor.{Actor, ActorRef}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
-import java.net.InetSocketAddress
-
-import scala.util.parsing.json.{JSON, JSONObject, JSONType}
 import com.mac.rso.CommitActor.Messages._
+import org.mongodb.scala.bson.collection.immutable.Document
+
+import scala.util.parsing.json.{JSON, JSONObject}
 
 /**
   * Created by mac on 17.04.16.
@@ -71,8 +70,8 @@ class CommitActor(dbHostUrl: String, document: Document, txId: String) extends A
 
       context become {
         case Received(data) =>
-          JSON.parseFull(data.utf8String) match {
-            case Some(response: Map[String, Any]) =>
+          JSON.parseFull(data.utf8String).cast[Map[String, Any]] match {
+            case Some(response) =>
               response.get("command") match {
                 case Some(Messages2PC.VOTE_OK) =>
                   println("received VoteOk!!")
