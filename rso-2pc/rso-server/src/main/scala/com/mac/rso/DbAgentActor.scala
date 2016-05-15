@@ -49,6 +49,7 @@ class DbAgentActor extends Actor {
 
               txId = obj.get("txId") match {
                 case Some(s: String) => Some(s)
+                case _ => throw new Exception("txId missing")
               }
 
               respond(replyTo, Messages2PC.VOTE_OK)
@@ -69,6 +70,7 @@ class DbAgentActor extends Actor {
                   logger.debug("rollback successful")
                   respond(replyTo, Messages2PC.ACK)
               }
+            case _ => throw new Exception("unknown command")
           }
 
         case _ =>
