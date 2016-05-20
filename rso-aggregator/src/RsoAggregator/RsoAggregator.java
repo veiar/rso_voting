@@ -8,12 +8,14 @@ public class RsoAggregator {
     public static void main(String[] args){
         MongoHandler mongoDB = null;
         PostgresHandler postDB = null;
+        Statistics stats = null;
 
         try {
             mongoDB = new MongoHandler();
-            mongoDB.test();
             postDB = new PostgresHandler();
-            postDB.insert(1, "trololo");
+            stats = new Statistics();
+            mongoDB.test(stats);
+            //postDB.insert(1, "trololo");
         }
         catch(Exception e){
             e.printStackTrace();
