@@ -24,7 +24,7 @@ namespace DataGenerator
             int interval = 0; //TODO
 
             var json = JsonConvert.SerializeObject(_voteRepository.GetRandomData(votesNumberPerPackage));
-            //Console.WriteLine(json);
+            Console.WriteLine(json);
 
             Console.WriteLine(string.Format(" **Data generator for RSO_Voting Project 2016** \n ConnectionString: {0}, \n Number of votes per package: {1}, \n Number of packages: {2}, Interval: {3}.\n\n",
                 url, votesNumberPerPackage, packageNumber, interval));
@@ -36,7 +36,7 @@ namespace DataGenerator
                 var data = Encoding.ASCII.GetBytes(postData);
 
                 request.Method = "POST";
-                request.ContentType = "application/x-www-form-urlencoded";
+                request.ContentType = "application/json";
                 request.ContentLength = data.Length;
 
                 using (var stream = request.GetRequestStream())
@@ -47,7 +47,7 @@ namespace DataGenerator
                 var response = (HttpWebResponse)request.GetResponse();
 
                 var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                Console.WriteLine(string.Format("Connected to {0}. /n All votes sended", url));
+                Console.WriteLine(string.Format("Connected to {0}. /n All votes sent", url));
             }
             catch (Exception ex)
             {
