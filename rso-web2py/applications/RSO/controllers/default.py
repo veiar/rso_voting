@@ -8,7 +8,7 @@
 # - download is for downloading files uploaded in the db (does streaming)
 # -------------------------------------------------------------------------
 from gluon.debug import dbg
-import pg8000
+
 def index():
     """
     example action using the internationalization operator T and flash
@@ -26,17 +26,15 @@ def getDbConnection():
     dbUrl = myconf.get('db.url')
     dbPort = myconf.get('db.port')
     dbName = myconf.get('db.name')
-    connection = pg8000.connect(user=userName, host=dbUrl,port=dbPort,database=dbName, password=userPassword)
-    return connection
+    db = DAL('postgres://' + userName + ':' + userPassword + '@' + dbUrl + ':' + str(dbPort) + '/' + dbName)
+    return db
 
 def getPartyPercentageData():
     labels = []
     numbers = []
-    connection = getDbConnection()
-    cursor = connection.cursor()
-    cursor.execute("""SELECT d_parties.name, res_party_percent.percentage
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_percent.percentage
                     FROM d_parties JOIN res_party_percent ON d_parties.party_id = res_party_percent.party_id""")
-    results = cursor.fetchall()
     for row in results:
         name, percentage = row
         labels.append(name)

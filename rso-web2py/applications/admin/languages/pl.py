@@ -142,6 +142,7 @@
 'Error snapshot': 'Error snapshot',
 'Error ticket': 'Error ticket',
 'Errors': 'błędy',
+'Exception %s': 'Exception %s',
 'Exception instance attributes': 'Exception instance attributes',
 'Exit Fullscreen': 'Exit Fullscreen',
 'Expand Abbreviation (html files only)': 'Expand Abbreviation (html files only)',
