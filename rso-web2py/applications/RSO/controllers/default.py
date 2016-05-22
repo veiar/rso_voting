@@ -45,30 +45,42 @@ def getCandidatePercentageData():
     partyId = request.vars["partyId"]
     labels = []
     numbers = []
+    numbersInPercents = []
+    total_votes_sum = 0
     db = getDbConnection()
-    results = db.executesql("""SELECT d_candidates.name, d_candidates.surname, res_party_candidates.percentage
+    results = db.executesql("""SELECT d_candidates.name, d_candidates.surname, res_party_candidates.votes_sum
                                 FROM d_candidates JOIN res_party_candidates
                                 ON d_candidates.candidate_id = res_party_candidates.candidate_id
                                 WHERE d_candidates.party_id = """ + str(partyId))
     for row in results:
-        name, lastname, percentage = row
+        name, lastname, votes_sum = row
         labels.append(lastname + ", " + name)
-        numbers.append(percentage)
+        numbers.append(votes_sum)
+        total_votes_sum += votes_sum
+    
+    for number in numbers:
+        numbersInPercents.append(number*100/total_votes_sum)
 
-    return dict(labels=labels, votes=numbers)
+    return dict(labels=labels, votes=numbersInPercents)
 
 def getPartyPercentageData():
     labels = []
     numbers = []
+    numbersInPercents = []
+    total_votes_sum = 0
     db = getDbConnection()
-    results = db.executesql("""SELECT d_parties.name, res_party_percent.percentage
+    results = db.executesql("""SELECT d_parties.name, res_party_percent.votes_sum
                     FROM d_parties JOIN res_party_percent ON d_parties.party_id = res_party_percent.party_id""")
     for row in results:
-        name, percentage = row
+        name, votes_sum = row
         labels.append(name)
-        numbers.append(percentage)
+        numbers.append(votes_sum)
+        total_votes_sum += votes_sum
+        
+    for num in numbers:
+        numbersInPercents.append(int(round(float(num)*100/float(total_votes_sum))))
 
-    return dict(labels=labels, votes=numbers)
+    return dict(labels=labels, votes=numbersInPercents)
 
 def user():
     """
