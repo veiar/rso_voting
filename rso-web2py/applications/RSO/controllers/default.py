@@ -20,10 +20,19 @@ def index():
     response.flash = T("Hello World")
     return dict(message=T('Welcome to web2py!'))
 
+def getDbConnection():
+    userName = myconf.get('db.user')
+    userPassword = myconf.get('db.password')
+    dbUrl = myconf.get('db.url')
+    dbPort = myconf.get('db.port')
+    dbName = myconf.get('db.name')
+    connection = pg8000.connect(user=userName, host=dbUrl,port=dbPort,database=dbName, password=userPassword)
+    return connection
+
 def getPartyPercentageData():
     labels = []
     numbers = []
-    connection = pg8000.connect(user='postgres', host='localhost',port=5432,database='results', password='postgres')
+    connection = getDbConnection()
     cursor = connection.cursor()
     cursor.execute("""SELECT d_parties.name, res_party_percent.percentage
                     FROM d_parties JOIN res_party_percent ON d_parties.party_id = res_party_percent.party_id""")
