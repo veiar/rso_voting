@@ -164,10 +164,11 @@ function addPartyBlock(element, index){
     var li = document.createElement("LI");
     li.setAttribute("class", "list-group-item");    
     var div = document.createElement("DIV");
-    div.setAttribute("class", "btn-group");    
+    div.setAttribute("class", "btn-group");
+    div.setAttribute("style", "width: 100%"); 
     var btn = document.createElement("BUTTON");
     btn.setAttribute("class", "btn btn-info");   
-    btn.setAttribute("style", "width: 360px");
+    btn.setAttribute("style", "width: inherit");
     var text = document.createTextNode(element);
     
     btn.appendChild(text);
