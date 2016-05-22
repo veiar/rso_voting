@@ -4,6 +4,12 @@ package RsoAggregator;
 import DBHandler.MongoHandler;
 import DBHandler.PostgresHandler;
 
+import java.sql.Array;
+import java.sql.ResultSet;
+
+import static DBHandler.PostgresHandler.D_CANDIDATES_COLS;
+import static DBHandler.PostgresHandler.D_CANDIDATES_TABLENAME;
+
 public class RsoAggregator {
     public static void main(String[] args){
         MongoHandler mongoDB = null;
@@ -14,7 +20,10 @@ public class RsoAggregator {
             mongoDB = new MongoHandler();
             postDB = new PostgresHandler();
             stats = new Statistics();
-            mongoDB.test(stats);
+            //postDB.getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
+            stats.calcAgeFromPesel("901204");
+            //mongoDB.test(stats);
+            mongoDB.getData();
             //postDB.insert(1, "trololo");
         }
         catch(Exception e){

@@ -1,17 +1,20 @@
 package DBHandler;
 
 import RsoAggregator.Statistics;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.*;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import org.bson.Document;
+import org.jongo.Aggregate;
+import org.jongo.Find;
+import org.jongo.Jongo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.util.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.jongo.marshall.jackson.oid.MongoId;
 
 //db.createUser({"user": "pm", "pwd": "pass123", roles: ["readWrite", "dbAdmin"]})
 public class MongoHandler {
@@ -69,7 +72,7 @@ public class MongoHandler {
         c.append("Gender", "K");
         System.out.println("Women: "+coll.count(c));
 
-
+/*
         BasicDBObject match = new BasicDBObject("$match", new BasicDBObject("Gender", "K") );
         BasicDBObject fields = new BasicDBObject("Education", 1);
         //fields.put("Education", 1);
@@ -88,10 +91,12 @@ public class MongoHandler {
                 //Object temp = document.get("Gender");
                 System.out.println(document);
             }
-        });
-        /*
+        });*/
+
         BasicDBObject d = new BasicDBObject();
         d.append("Gender", "K");
+
+        //d.append("$substr", new Document("$PESEL", new int[] {0, 6}));
         coll.count(d);
         FindIterable<Document> iterable = mongoDB.getCollection(dbCollection).find(d);
 
@@ -103,10 +108,87 @@ public class MongoHandler {
             }
         });
 
-        stats.setWomenAllCount(mongoDB.getCollection(dbCollection).count(d));
-        */
+        //stats.setWomenAllCount(mongoDB.getCollection(dbCollection).count(d));
+
         //insertSome();
 
+    }
+
+    private class PeselData{
+        @MongoId
+        private String key;
+        @JsonProperty("PESEL")
+        private int pesel;
+        @JsonProperty("Vote")
+        private int vote;
+        @JsonProperty("Birth")
+        private String birth;
+        PeselData() {}
+
+        PeselData(int a, int b, String c){
+            this.pesel = a;
+            this.vote = b;
+            this.birth = c;
+        }
+
+        public void setPesel(int a) { this.pesel = a; }
+        public void setVote(int v) { this.vote = v; }
+        public void setKey(String k) { this.key = k; }
+        public void setBirth(String b) {this.birth = b; }
+    }
+
+    public void getData(){
+        MongoCollection collM = mongoDB.getCollection(dbCollection);
+        DB db = mongoClient.getDB(dbName);
+        Jongo jongo = new Jongo(db);
+        org.jongo.MongoCollection coll = jongo.getCollection(dbCollection);
+        /*BasicDBObject match = new BasicDBObject("$match", new BasicDBObject("Gender", "K") );
+        BasicDBObject fields = new BasicDBObject("PESEL", new BasicDBObject());
+        fields.put("$substr", new int[] {0, 6});
+        fields.put("_id", 0);
+        BasicDBObject project = new BasicDBObject("$project", fields );
+*/
+        //Aggregate.ResultsIterator a = coll.aggregate("{$project: {PESEL:1, Vote:1, Birth: { $substr: [\"$PESEL\", 0, 6]}, _id:0 } }").as(Object.class);
+        //Aggregate.ResultsIterator a = coll.aggregate("{$project: {PESEL:1, _id:0 } }").as(String.class);
+        //AggregateIterable ai = collM.aggregate();
+
+       //org.jongo.MongoCursor<String> f = coll.find().projection("{ppp: { $substr: [\"$PESEL\", 0, 6] } }").as(String.class);
+        /*org.jongo.MongoCursor<Object> f = coll.find().projection("{_id : 0, " +
+                "PESEL: 1, " +
+                //"trunc : { $substr: [\"$PESEL\", 0, 6] }" +
+                "}").as(Object.class);
+        while (f.hasNext()){
+            System.out.println(f.next());
+        }*/
+
+        BasicDBObject fields = new BasicDBObject("PESEL", 1);
+        //fields.put("Birth", new BasicDBObject("$substr", "\"$PESEL\", 0, 2"));
+        fields.put("Birth", new BasicDBObject("$substr", new Object[] {"$PESEL", 0, 6}));
+        fields.put("_id", 0);
+        BasicDBObject project = new BasicDBObject("$project", fields );
+
+        AggregateIterable output =  collM.aggregate(Arrays.asList(project));
+        output.forEach(new Block<Document>(){
+            @Override
+            public void apply(final Document document) {
+                Object temp = document.get("Birth");
+                System.out.println(temp);
+            }
+        });
+        /*while (a.hasNext()){
+            System.out.println(a.next());
+        }*/
+
+
+        //AggregateIterable output =  coll.aggregate(Arrays.asList(match, project));
+/*
+        f.forEach(new Block<Document>(){
+            @Override
+            public void apply(final Document document) {
+                //Object temp = document.get("Gender");
+                System.out.println(document);
+            }
+        });*/
     }
 
     private void insertSome(){

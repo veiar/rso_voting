@@ -1,11 +1,17 @@
 package DBHandler;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class PostgresHandler {
-    static public String dbOutName = "dbout";
+    public static String[] D_CANDIDATES_COLS = {"candidate_id", "name", "surname", "party_id"};
+    public static String D_CANDIDATES_TABLENAME = "d_candidates";
+
+    static public String dbOutName = "results";
     private Connection conn;
+
 
 
     public PostgresHandler(){
@@ -15,6 +21,7 @@ public class PostgresHandler {
             conn = DriverManager
                     .getConnection("jdbc:postgresql://localhost:5432/" + dbOutName,
                             "postgres", "123");
+            conn.setAutoCommit(false);
         }
         catch (Exception e){
             //e.printStackTrace();
@@ -24,9 +31,26 @@ public class PostgresHandler {
         System.out.println("Connected to Postgres...");
     }
 
+
+    public void getDictData(String dictName, String[] columns) throws SQLException{
+        StringBuilder sb = new StringBuilder();
+        for (String n : columns) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(n);
+        }
+        Statement stmt = conn.createStatement();
+        String query = "select " + sb.toString() + " from " + dictName + ";";
+        ResultSet rs = stmt.executeQuery(query);
+
+        while(rs.next()){
+            System.out.println(rs.getString(1) + " " + rs.getString(2) + " " +rs.getString(3) + " " +rs.getString(4));
+        }
+        rs.close();
+        stmt.close();
+    }
+
     public void insert(int id, String txt){
         try {
-            conn.setAutoCommit(false);
             String sql = "insert into table1 (id, txt) " +
                     "values " +
                     "(nextval('public.seq_id1'), ?)";
