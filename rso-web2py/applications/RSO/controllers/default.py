@@ -7,7 +7,7 @@
 # - user is required for authentication and authorization
 # - download is for downloading files uploaded in the db (does streaming)
 # -------------------------------------------------------------------------
-
+from gluon.debug import dbg
 
 def index():
     """
@@ -20,6 +20,55 @@ def index():
     response.flash = T("Hello World")
     return dict(message=T('Welcome to web2py!'))
 
+def getDbConnection():
+    userName = myconf.get('db.user')
+    userPassword = myconf.get('db.password')
+    dbUrl = myconf.get('db.url')
+    dbPort = myconf.get('db.port')
+    dbName = myconf.get('db.name')
+    db = DAL('postgres://' + userName + ':' + userPassword + '@' + dbUrl + ':' + str(dbPort) + '/' + dbName)
+    return db
+
+def getPartyList():
+    labels = []
+    numbers = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT * FROM d_parties """)
+    for row in results:
+        partyid, name = row
+        labels.append(name)
+        numbers.append(partyid)
+
+    return dict(names=labels, ids=numbers)
+
+def getCandidatePercentageData():
+    partyId = request.vars["partyId"]
+    labels = []
+    numbers = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_candidates.name, d_candidates.surname, res_party_candidates.percentage
+                                FROM d_candidates JOIN res_party_candidates
+                                ON d_candidates.candidate_id = res_party_candidates.candidate_id
+                                WHERE d_candidates.party_id = """ + str(partyId))
+    for row in results:
+        name, lastname, percentage = row
+        labels.append(lastname + ", " + name)
+        numbers.append(percentage)
+
+    return dict(labels=labels, votes=numbers)
+
+def getPartyPercentageData():
+    labels = []
+    numbers = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_percent.percentage
+                    FROM d_parties JOIN res_party_percent ON d_parties.party_id = res_party_percent.party_id""")
+    for row in results:
+        name, percentage = row
+        labels.append(name)
+        numbers.append(percentage)
+
+    return dict(labels=labels, votes=numbers)
 
 def user():
     """
@@ -57,5 +106,3 @@ def call():
     supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
     """
     return service()
-
-

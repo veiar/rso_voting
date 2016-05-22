@@ -1,66 +1,76 @@
-$(document).ready(function() {showColumnChart()});
+//$(document).ready(function() {showPieChart([1, 2], ['a', 'b'])});
 
-function showColumnChart()
-{
-    document.getElementById("pieChart").style.visibility='hidden';
-    document.getElementById("columnChart").style.visibility='visible';
-    var ctx = document.getElementById("columnChart");
-    var columnChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-        datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3]
-        }]
-    },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero:true
-                }
-            }]
-        }
-    }
-});
+function getPartyPercentage() {
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
 }
 
-function ShowPieChart()
+function showColumnChart(data, labels)
 {
-    document.getElementById("columnChart").style.visibility='hidden';
-    document.getElementById("pieChart").style.visibility='visible';
-    var chart = new CanvasJS.Chart("pieChart",
-	{
-		title:{
-			text: "Voting results"
-		},
-                animationEnabled: true,
-		legend:{
-			verticalAlign: "top",
-			horizontalAlign: "left",
-			fontSize: 20,
-			fontFamily: "Helvetica"        
-		},
-		theme: "theme2",
-		data: [
-		{        
-			type: "pie",       
-			indexLabelFontFamily: "Garamond",       
-			indexLabelFontSize: 20,
-			indexLabel: "{label} {y}%",
-			startAngle:-20,      
-			showInLegend: true,
-			toolTipContent:"{legendText} {y}%",
-			dataPoints: [
-				{  y: 83.24, legendText:"Red", label: "Google" },
-				{  y: 8.16, legendText:"Blue", label: "Blue" },
-				{  y: 4.67, legendText:"Yellow", label: "Yellow" },
-				{  y: 1.67, legendText:"Green" , label: "Green"},       
-				{  y: 0.98, legendText:"Purple" , label: "Purple"}
-			]
-		}
-       ]
-	});
-	chart.render();
+    var ctx = document.getElementById("columnChart");
+    var columnChart = new Chart(ctx, {
+        type: 'bar',
+        backgroundColor: "rgba(255,99,132,0.2)",
+        borderColor: "rgba(255,99,132,1)",
+        borderWidth: 1,
+        hoverBackgroundColor: "rgba(255,99,132,0.4)",
+        hoverBorderColor: "rgba(255,99,132,1)",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '# głosów',
+                data: data
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+}
+
+function showPieChart(data, labels)
+{
+    if(data.length != 0 && labels.length != 0)
+    {
+        var ctx = document.getElementById("pieChart");
+        var pieChart = new Chart(ctx,{
+            type: 'pie',
+            data: data = {
+                labels: labels,
+                datasets: [
+                    {
+                        data: data,
+                        backgroundColor: [
+                            "#FF6384",
+                            "#36A2EB",
+                            "#FFCE56"
+                        ],
+                        hoverBackgroundColor: [
+                            "#FF6384",
+                            "#36A2EB",
+                            "#FFCE56"
+                        ]
+                    }]
+            },
+            options: {
+                elements: {
+                    arc: {
+                        borderColor: "#000000"
+                    }
+                }
+            }
+        });
+        pieChart.render();
+    }
 }
