@@ -78,7 +78,7 @@ WITH (
 ALTER TABLE res_party_education
   OWNER TO postgres;
 
-
+ 
 --% glosow na partie ogolem
 CREATE TABLE res_party_percent
 (
