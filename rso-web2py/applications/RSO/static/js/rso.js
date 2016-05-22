@@ -40,7 +40,10 @@ function getCandidatesFromParty(item){
     $.ajax({
         url: "/RSO/default/getCandidatePercentageData.json",
         data: {partyId:item},
-        success: function(data) {                
+        success: function(data) { 
+             if (window.currentChart != undefined){                    
+                currentChart.destroy();
+            }            
             showPieChart(data.votes, data.labels)
         },
         error: function(data) {debugger}
@@ -139,6 +142,7 @@ function showPieChart(data, labels)
             }
         });
         pieChart.render();
+        window.currentChart = pieChart;
     }
 }
 
