@@ -53,12 +53,8 @@ def _():
             (T('Frekwencja'), False,
              URL(
                  'admin', 'default', 'edit/%s/controllers/%s.py' % (app, ctr))),
-            (T('Partie'), False,
-             URL(
-                 'admin', 'default', 'edit/%s/views/%s' % (app, response.view))),
-            (T('Okręgi'), False,
-             URL(
-                 'admin', 'default', 'edit/%s/models/db.py' % app)),
+            (T('Partie'), False, URL('default', 'index'), []),
+            (T('Okręgi'), False, URL('default', 'index'), []),
             (T('Kandydaci'), False,
              URL(
                  'admin', 'default', 'edit/%s/models/menu.py' % app)),

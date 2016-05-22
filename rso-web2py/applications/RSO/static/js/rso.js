@@ -1,4 +1,14 @@
-$(document).ready(function() {showPieChart([1, 2], ['a', 'b'])});
+//$(document).ready(function() {showPieChart([1, 2], ['a', 'b'])});
+
+function getPartyPercentage() {
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
 
 function showColumnChart(data, labels)
 {
@@ -31,34 +41,36 @@ function showColumnChart(data, labels)
 
 function showPieChart(data, labels)
 {
-    var ctx = document.getElementById("pieChart");
-    //var chart = new CanvasJS.Chart("pieChart",
-    var pieChart = new Chart(ctx,{
-        type: 'pie',
-        data: data = {
-            labels: labels,
-            datasets: [
-                {
-                    data: data,
-                    backgroundColor: [
-                        "#FF6384",
-                        "#36A2EB",
-                        "#FFCE56"
-                    ],
-                    hoverBackgroundColor: [
-                        "#FF6384",
-                        "#36A2EB",
-                        "#FFCE56"
-                    ]
-                }]
-        },
-        options: {
-            elements: {
-                arc: {
-                    borderColor: "#000000"
+    if(data.length != 0 && labels.length != 0)
+    {
+        var ctx = document.getElementById("pieChart");
+        var pieChart = new Chart(ctx,{
+            type: 'pie',
+            data: data = {
+                labels: labels,
+                datasets: [
+                    {
+                        data: data,
+                        backgroundColor: [
+                            "#FF6384",
+                            "#36A2EB",
+                            "#FFCE56"
+                        ],
+                        hoverBackgroundColor: [
+                            "#FF6384",
+                            "#36A2EB",
+                            "#FFCE56"
+                        ]
+                    }]
+            },
+            options: {
+                elements: {
+                    arc: {
+                        borderColor: "#000000"
+                    }
                 }
             }
-        }
-	});
-	pieChart.render();
+        });
+        pieChart.render();
+    }
 }
