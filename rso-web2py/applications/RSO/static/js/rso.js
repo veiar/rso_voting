@@ -2,6 +2,7 @@ $(document).ready(function() {hidePartyBlock()});
 
 function getFrequency() {
     hidePartyBlock();
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -13,6 +14,7 @@ function getFrequency() {
 
 function getPartyPercentage() {
     hidePartyBlock();
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -23,6 +25,7 @@ function getPartyPercentage() {
 }
 
 function getConstituencies() {
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -37,13 +40,11 @@ function getCandidates() {
 }
 
 function getCandidatesFromParty(item){
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getCandidatePercentageData.json",
         data: {partyId:item},
-        success: function(data) { 
-             if (window.currentChart != undefined){                    
-                currentChart.destroy();
-            }            
+        success: function(data) {       
             showPieChart(data.votes, data.labels)
         },
         error: function(data) {debugger}
@@ -51,6 +52,7 @@ function getCandidatesFromParty(item){
 }
 
 function getAge() {
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -61,6 +63,7 @@ function getAge() {
 }
 
 function getEducation() {
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -71,6 +74,7 @@ function getEducation() {
 }
 
 function getSex() {
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -196,4 +200,10 @@ function clearPartyBlock(){
 function hidePartyBlock(){
     clearPartyBlock();
     $('#partyPanel').hide();
+}
+
+function removeCurrentChart(){
+    if (window.currentChart != undefined){                    
+        currentChart.destroy();
+    }   
 }
