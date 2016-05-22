@@ -1,6 +1,73 @@
-//$(document).ready(function() {showPieChart([1, 2], ['a', 'b'])});
+$(document).ready(function() {hidePartyBlock()});
+
+function getFrequency() {
+    hidePartyBlock();
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
 
 function getPartyPercentage() {
+    hidePartyBlock();
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
+
+function getConstituencies() {
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
+
+function getCandidates() {
+    showPartyBlock();
+}
+
+function getCandidatesFromParty(item){
+    $.ajax({
+        url: "/RSO/default/getCandidatePercentageData.json",
+        data: {partyId:item},
+        success: function(data) {                
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {debugger}
+})
+}
+
+function getAge() {
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
+
+function getEducation() {
+    $.ajax({
+        url: "/RSO/default/getPartyPercentageData.json",
+        success: function(data) {
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {}
+    })
+}
+
+function getSex() {
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -73,4 +140,55 @@ function showPieChart(data, labels)
         });
         pieChart.render();
     }
+}
+
+function showPartyBlock()
+{
+    $('#partyPanel').show();
+    $.ajax({
+        url: "/RSO/default/getPartyList.json",
+        success: function(data) {
+            if(data.names.length != 0)
+            {
+                for(i=0; i<data.names.length; ++i)
+                {
+                    addPartyBlock(data.names[i], data.ids[i]);
+                }
+            }        
+        },
+        error: function(data) {}
+})
+}
+
+function addPartyBlock(element, index){
+    var li = document.createElement("LI");
+    li.setAttribute("class", "list-group-item");    
+    var div = document.createElement("DIV");
+    div.setAttribute("class", "btn-group");    
+    var btn = document.createElement("BUTTON");
+    btn.setAttribute("class", "btn btn-info");   
+    btn.setAttribute("style", "width: 360px");
+    var text = document.createTextNode(element);
+    
+    btn.appendChild(text);
+    //btn.setAttribute("onclick", getCandidatesFromParty
+    btn.addEventListener('click', function(){
+        getCandidatesFromParty(index);
+    });
+
+    div.appendChild(btn);
+    li.appendChild(div);
+    document.getElementById("partyBlock").appendChild(li);
+}
+
+function clearPartyBlock(){
+    var partyBlock = document.getElementById("partyBlock");
+    while (partyBlock.firstChild) {
+        partyBlock.removeChild(partyBlock.firstChild);
+    }
+}
+
+function hidePartyBlock(){
+    clearPartyBlock();
+    $('#partyPanel').hide();
 }
