@@ -7,8 +7,8 @@
 # - user is required for authentication and authorization
 # - download is for downloading files uploaded in the db (does streaming)
 # -------------------------------------------------------------------------
-
-
+from gluon.debug import dbg
+import pg8000
 def index():
     """
     example action using the internationalization operator T and flash
@@ -20,6 +20,20 @@ def index():
     response.flash = T("Hello World")
     return dict(message=T('Welcome to web2py!'))
 
+def getPartyPercentageData():
+    labels = []
+    numbers = []
+    connection = pg8000.connect(user='postgres', host='localhost',port=5432,database='results', password='postgres')
+    cursor = connection.cursor()
+    cursor.execute("""SELECT d_parties.name, res_party_percent.percentage
+                    FROM d_parties JOIN res_party_percent ON d_parties.party_id = res_party_percent.party_id""")
+    results = cursor.fetchall()
+    for row in results:
+        name, percentage = row
+        labels.append(name)
+        numbers.append(percentage)
+
+    return dict(labels=labels, votes=numbers)
 
 def user():
     """
@@ -57,5 +71,3 @@ def call():
     supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
     """
     return service()
-
-
