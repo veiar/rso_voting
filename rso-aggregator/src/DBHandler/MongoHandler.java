@@ -160,6 +160,7 @@ public class MongoHandler {
 
     }
 
+
     public void insertSome(){
         Random random = new Random();
         boolean gender = false, edu = true;

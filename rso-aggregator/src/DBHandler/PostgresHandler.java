@@ -1,5 +1,6 @@
 package DBHandler;
 
+import RsoAggregator.Dictionary;
 import RsoAggregator.Statistics;
 
 import java.sql.*;
@@ -9,13 +10,15 @@ import java.util.Map;
 
 
 public class PostgresHandler {
-    public static String[] D_CANDIDATES_COLS = {"candidate_id", "name", "surname", "party_id"};
+    public static String[] D_CANDIDATES_COLS = {"candidate_id", "party_id"};
     public static String D_CANDIDATES_TABLENAME = "d_candidates";
     static public String dbOutName = "results";
     private Connection conn;
-
-    public PostgresHandler(){
+    private Dictionary dict;
+    private Statistics stats;
+    public PostgresHandler(Statistics s){
         conn = null;
+        stats = s;
         try{
             Class.forName("org.postgresql.Driver");
             conn = DriverManager
@@ -29,6 +32,7 @@ public class PostgresHandler {
             System.exit(0);
         }
         System.out.println("Connected to Postgres...");
+        dict = new Dictionary();
     }
 
 
@@ -42,8 +46,10 @@ public class PostgresHandler {
         String query = "select " + sb.toString() + " from " + dictName + ";";
         ResultSet rs = stmt.executeQuery(query);
 
+        Map<Integer, Integer> candidateMap = dict.getDictCandidateMap();
         while(rs.next()){
-            System.out.println(rs.getString(1) + " " + rs.getString(2) + " " +rs.getString(3) + " " +rs.getString(4));
+            candidateMap.put(rs.getInt(1), rs.getInt(2));
+            //System.out.println(rs.getString(1) + " " + rs.getString(2));
         }
         rs.close();
         stmt.close();

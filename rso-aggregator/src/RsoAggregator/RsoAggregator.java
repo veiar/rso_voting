@@ -18,8 +18,8 @@ public class RsoAggregator {
 
         try {
             mongoDB = new MongoHandler();
-            postDB = new PostgresHandler();
-            //postDB.getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
+            postDB = new PostgresHandler(mongoDB.getStats());
+            postDB.getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
             //stats.calcAgeFromPesel("901204");
             mongoDB.getResPartyCandidates();
             postDB.insertResPartyCandidates(mongoDB.getStats());
