@@ -57,7 +57,42 @@ def getCandidatePercentageData():
         labels.append(lastname + ", " + name)
         numbers.append(votes_sum)
         total_votes_sum += votes_sum
-    
+
+    for number in numbers:
+        numbersInPercents.append(number*100/total_votes_sum)
+
+    return dict(labels=labels, votes=numbersInPercents)
+
+def getSexList():
+    labels = []
+    numbers = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT * FROM d_sex """)
+    for row in results:
+        sexid, name = row
+        labels.append(name)
+        numbers.append(sexid)
+
+    return dict(names=labels, ids=numbers)
+
+def getSexPercentageData():
+    sexId = request.vars["sexId"]
+    labels = []
+    numbers = []
+    numbersInPercents = []
+    total_votes_sum = 0
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_sex.votes_sum
+                            FROM d_parties JOIN res_party_sex ON
+                            d_parties.party_id = res_party_sex.party_id
+                            JOIN d_sex ON d_sex.sex_id = res_party_sex.sex_id
+                            WHERE d_sex.sex_id = """ + str(sexId))
+    for row in results:
+        partyname, votes_sum = row
+        labels.append(partyname)
+        numbers.append(votes_sum)
+        total_votes_sum += votes_sum
+
     for number in numbers:
         numbersInPercents.append(number*100/total_votes_sum)
 
@@ -76,7 +111,7 @@ def getPartyPercentageData():
         labels.append(name)
         numbers.append(votes_sum)
         total_votes_sum += votes_sum
-        
+
     for num in numbers:
         numbersInPercents.append(int(round(float(num)*100/float(total_votes_sum))))
 

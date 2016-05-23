@@ -185,6 +185,7 @@
 'Which called the function %s located in the file %s': 'Which called the function %s located in the file %s',
 'Working...': 'Working...',
 'Wybierz dane do statystyk:': 'Wybierz dane do statystyk:',
+'Wybierz partie': 'Wybierz partie',
 'Wykształcenie': 'Wykształcenie',
 'Wyniki': 'Wyniki',
 'You are successfully running web2py': 'You are successfully running web2py',
