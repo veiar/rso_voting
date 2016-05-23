@@ -117,6 +117,35 @@ def getPartyPercentageData():
 
     return dict(labels=labels, votes=numbersInPercents)
 
+
+def getConstituenciesPercentageData():
+    dictionary = None
+    districts = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_constituency.votes_sum,d_constituencies.name
+                            FROM d_parties JOIN res_party_constituency ON
+                            d_parties.party_id = res_party_constituency.party_id
+                            JOIN d_constituencies ON
+                            d_constituencies.constituency_id = res_party_constituency.constituency_id
+                            ORDER BY d_parties.party_id ASC, d_constituencies.constituency_id ASC""")
+    for row in results:
+        name, votes_sum, districtName = row
+
+        if districtName not in districts:
+            districts.append(districtName)
+
+        if dictionary is None:
+            dictionary = {name:[votes_sum]}
+            continue
+
+        if name in dictionary:
+            dictionary[name].append(votes_sum)
+        else:
+            dictionary[name] = [votes_sum]
+
+    return dict(votes=dictionary, districts=districts)
+
+	
 def user():
     """
     exposes:
