@@ -1,25 +1,22 @@
 package RsoAggregator;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.Block;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 public class Statistics {
-    private long womenAllCount;  // kobiet glosujacych w sumie
-    private long menAllCount;    // mezczyzn glosujacych w sumie
+    private Map<Integer, Integer> resPartyCandidatesMap;    // <candidate_id, votes_sum>
 
-    Statistics(){
-        this.menAllCount = 0;
-        this.womenAllCount = 0;
+    public Statistics(){
+        this.resPartyCandidatesMap = new HashMap<>();
+
     }
-
-
-    public void setWomenAllCount(long count) {this.womenAllCount = count; }
-    public void setMenAllCount(long count) {this.menAllCount = count; }
-    public long getWomenAllCount() {return this.womenAllCount; }
-    public long getMenAllCount() {return this.menAllCount; }
-
 //select age_id, age_group, split_part(age_group, '-', 1), split_part(age_group, '-', 2) from d_age ;
 
     public int calcAgeFromPesel(String pesel){
@@ -35,5 +32,17 @@ public class Statistics {
             System.err.println(e.getClass().getName()+ e.getMessage());
         }
         return 0;
+    }
+
+
+    public void calcResPartyCandidates(AggregateIterable output){
+        output.forEach(new Block<Document>(){
+            @Override
+            public void apply(final Document document) {
+                resPartyCandidatesMap.put((Integer) document.get("_id"), (Integer) document.get("sum"));
+                Object temp = (String)(document.get("_id") + ": " + document.get("sum"));
+                System.out.println(temp);
+            }
+        });
     }
 }

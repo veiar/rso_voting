@@ -26,6 +26,7 @@ public class MongoHandler {
     private MongoClient mongoClient;
     private MongoDatabase mongoDB;
     private Map<String, List<String>> propertiesMap;
+    Statistics stats = null;
     public MongoHandler(){
         init();
     }
@@ -42,6 +43,8 @@ public class MongoHandler {
         //this.mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
         this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
         this.mongoDB = mongoClient.getDatabase(dbName);
+
+        stats = new Statistics();
     }
 
     private void getProperties() throws IOException{
@@ -171,7 +174,7 @@ public class MongoHandler {
         output.forEach(new Block<Document>(){
             @Override
             public void apply(final Document document) {
-                Object temp = document.get("Birth");
+                int temp = Integer.parseInt((String)document.get("Birth"));
                 System.out.println(temp);
             }
         });
@@ -191,12 +194,37 @@ public class MongoHandler {
         });*/
     }
 
-    private void insertSome(){
+
+    public void getResPartyCandidates(){
+        MongoCollection coll = mongoDB.getCollection(dbCollection);
+        BasicDBObject groupFields = new BasicDBObject( "_id", "$Vote");
+        groupFields.put("sum", new BasicDBObject( "$sum", 1));
+        BasicDBObject group = new BasicDBObject("$group", groupFields);
+
+        AggregateIterable output =  coll.aggregate(Arrays.asList(group));
+        stats.calcResPartyCandidates(output);
+
+    }
+
+    public void insertSome(){
         Random random = new Random();
         boolean gender = false, edu = true;
         ArrayList<Document> docList = new ArrayList<>();
         for(int i = 0; i < 1000; ++i) {
-            Document obj = new Document("PESEL", random.nextInt(999999999))
+            int year = random.nextInt(99)+1;
+            int month = random.nextInt(12)+1;
+            int day = random.nextInt(31)+1;
+            int rest = random.nextInt(89999)+10000;
+            String y = Integer.toString(year);
+            if(y.length() == 1) y = "0" + y;
+            String m = Integer.toString(month);
+            if(m.length() == 1) m = "0" + m;
+            String d = Integer.toString(day);
+            if(d.length() == 1) d = "0" + d;
+
+            String pesel = y+m+d+rest;
+
+            Document obj = new Document("PESEL", pesel)
                     .append("Vote", random.nextInt(15))
                     .append("VotingArea", random.nextInt(16))
                     .append("Gender", gender ? "M" : "K")
