@@ -1,18 +1,18 @@
 package DBHandler;
 
+import RsoAggregator.Statistics;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 
 public class PostgresHandler {
     public static String[] D_CANDIDATES_COLS = {"candidate_id", "name", "surname", "party_id"};
     public static String D_CANDIDATES_TABLENAME = "d_candidates";
-
     static public String dbOutName = "results";
     private Connection conn;
-
-
 
     public PostgresHandler(){
         conn = null;
@@ -49,6 +49,42 @@ public class PostgresHandler {
         stmt.close();
     }
 
+    public void insertResPartyCandidates(Statistics stats){
+        Map<Integer, Integer> map =  stats.getResPartyCandidatesMap();
+        for(Map.Entry<Integer, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_candidates (candidate_id, votes_sum) " +
+                        "values " +
+                        "(?, ?)" +
+                        "on conflict (candidate_id) do update set " +
+                        "candidate_id = excluded.candidate_id, " +
+                        "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey());
+                stmt.setInt(2, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            }
+            catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                }
+                catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
+    }
     public void insert(int id, String txt){
         try {
             String sql = "insert into table1 (id, txt) " +

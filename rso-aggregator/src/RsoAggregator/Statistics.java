@@ -19,6 +19,7 @@ public class Statistics {
     }
 //select age_id, age_group, split_part(age_group, '-', 1), split_part(age_group, '-', 2) from d_age ;
 
+    public Map<Integer, Integer> getResPartyCandidatesMap() {return this.resPartyCandidatesMap; }
     public int calcAgeFromPesel(String pesel){
         Date now = Calendar.getInstance().getTime();
         DateFormat df = new SimpleDateFormat("yyMMdd");

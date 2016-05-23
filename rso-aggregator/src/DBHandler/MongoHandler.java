@@ -1,20 +1,15 @@
 package DBHandler;
 
 import RsoAggregator.Statistics;
-import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.mongodb.*;
 import com.mongodb.client.*;
 import org.bson.Document;
-import org.jongo.Aggregate;
-import org.jongo.Find;
-import org.jongo.Jongo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.ResultSet;
+
 import java.util.*;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.jongo.marshall.jackson.oid.MongoId;
 
 //db.createUser({"user": "pm", "pwd": "pass123", roles: ["readWrite", "dbAdmin"]})
 public class MongoHandler {
@@ -26,11 +21,13 @@ public class MongoHandler {
     private MongoClient mongoClient;
     private MongoDatabase mongoDB;
     private Map<String, List<String>> propertiesMap;
-    Statistics stats = null;
+    private Statistics stats = null;
     public MongoHandler(){
         init();
     }
 
+
+    public Statistics getStats() {return this.stats;}
     private void init(){
         try {
             getProperties();
@@ -117,52 +114,9 @@ public class MongoHandler {
 
     }
 
-    private class PeselData{
-        @MongoId
-        private String key;
-        @JsonProperty("PESEL")
-        private int pesel;
-        @JsonProperty("Vote")
-        private int vote;
-        @JsonProperty("Birth")
-        private String birth;
-        PeselData() {}
-
-        PeselData(int a, int b, String c){
-            this.pesel = a;
-            this.vote = b;
-            this.birth = c;
-        }
-
-        public void setPesel(int a) { this.pesel = a; }
-        public void setVote(int v) { this.vote = v; }
-        public void setKey(String k) { this.key = k; }
-        public void setBirth(String b) {this.birth = b; }
-    }
 
     public void getData(){
         MongoCollection collM = mongoDB.getCollection(dbCollection);
-        DB db = mongoClient.getDB(dbName);
-        Jongo jongo = new Jongo(db);
-        org.jongo.MongoCollection coll = jongo.getCollection(dbCollection);
-        /*BasicDBObject match = new BasicDBObject("$match", new BasicDBObject("Gender", "K") );
-        BasicDBObject fields = new BasicDBObject("PESEL", new BasicDBObject());
-        fields.put("$substr", new int[] {0, 6});
-        fields.put("_id", 0);
-        BasicDBObject project = new BasicDBObject("$project", fields );
-*/
-        //Aggregate.ResultsIterator a = coll.aggregate("{$project: {PESEL:1, Vote:1, Birth: { $substr: [\"$PESEL\", 0, 6]}, _id:0 } }").as(Object.class);
-        //Aggregate.ResultsIterator a = coll.aggregate("{$project: {PESEL:1, _id:0 } }").as(String.class);
-        //AggregateIterable ai = collM.aggregate();
-
-       //org.jongo.MongoCursor<String> f = coll.find().projection("{ppp: { $substr: [\"$PESEL\", 0, 6] } }").as(String.class);
-        /*org.jongo.MongoCursor<Object> f = coll.find().projection("{_id : 0, " +
-                "PESEL: 1, " +
-                //"trunc : { $substr: [\"$PESEL\", 0, 6] }" +
-                "}").as(Object.class);
-        while (f.hasNext()){
-            System.out.println(f.next());
-        }*/
 
         BasicDBObject fields = new BasicDBObject("PESEL", 1);
         //fields.put("Birth", new BasicDBObject("$substr", "\"$PESEL\", 0, 2"));
