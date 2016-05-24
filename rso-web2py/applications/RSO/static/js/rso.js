@@ -17,8 +17,8 @@ function getFrequency() {
 }
 
 function getPartyPercentage() {
-    hidePartyBlock();
     hideSexBlock();
+    hidePartyBlock();
     removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
@@ -33,15 +33,16 @@ function getConstituencies() {
     hideSexBlock();
     removeCurrentChart();
     $.ajax({
-        url: "/RSO/default/getPartyPercentageData.json",
+        url: "/RSO/default/getConstituenciesPercentageData.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
     })
 }
 
 function getCandidates() {
+    removeCurrentChart();
     hideSexBlock();
     showPartyBlock();
 }
@@ -85,6 +86,8 @@ function getEducation() {
 
 
 function getSexList() {
+    removeCurrentChart();
+    hideSexBlock();
     hidePartyBlock();
     showSexBlock();
 }
@@ -104,18 +107,16 @@ function getSex(item) {
 function showColumnChart(data, labels)
 {
     var ctx = document.getElementById("columnChart");
+    $(ctx).show();
     var columnChart = new Chart(ctx, {
         type: 'bar',
-        backgroundColor: "rgba(255,99,132,0.2)",
-        borderColor: "rgba(255,99,132,1)",
-        borderWidth: 1,
-        hoverBackgroundColor: "rgba(255,99,132,0.4)",
-        hoverBorderColor: "rgba(255,99,132,1)",
+       
         data: {
             labels: labels,
             datasets: [{
                 label: '# głosów',
-                data: data
+                data: data,
+                backgroundColor: getRandomColor()
             }]
         },
         options: {
@@ -128,13 +129,65 @@ function showColumnChart(data, labels)
             }
         }
     });
+    window.currentChart = columnChart;
 }
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function showMixedColumnChart(data, labels)
+{
+    var keys = Object.keys(data);
+    var ourDataset = [];
+    for(i = 0; i < keys.length; i++)
+    {
+        
+        ourDataset.push({
+                label:keys[i],
+                data:data[keys[i]],
+                backgroundColor: getRandomColor()
+            });
+    }
+    
+    var ctx = document.getElementById("mixedColumnChart");
+    $(ctx).show();
+    var columnChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: ourDataset,
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+    window.currentChart = columnChart;
+}
+
 
 function showPieChart(data, labels)
 {
     if(data.length != 0 && labels.length != 0)
     {
+        var colorList = [];
+        labels.forEach(function (){
+            colorList.push(getRandomColor());
+        });
+        
         var ctx = document.getElementById("pieChart");
+        $(ctx).show();
         var pieChart = new Chart(ctx,{
             type: 'pie',
             data: data = {
@@ -142,16 +195,7 @@ function showPieChart(data, labels)
                 datasets: [
                     {
                         data: data,
-                        backgroundColor: [
-                            "#FF6384",
-                            "#36A2EB",
-                            "#FFCE56"
-                        ],
-                        hoverBackgroundColor: [
-                            "#FF6384",
-                            "#36A2EB",
-                            "#FFCE56"
-                        ]
+                        backgroundColor: colorList,
                     }]
             },
             options: {
@@ -170,6 +214,7 @@ function showPieChart(data, labels)
 function removeCurrentChart(){
     if (window.currentChart != undefined){                    
         currentChart.destroy();
+        $(currentChart.chart.canvas).hide();
     }   
 }
 
