@@ -10,11 +10,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Statistics {
+public class Statistics extends Dictionary{
     private Map<Integer, Integer> resPartyCandidatesMap;    // <candidate_id, votes_sum>
+    private Map<Integer, Integer> resPartyPercentMap;    // <party_id, votes_sum>
 
     public Statistics(){
         this.resPartyCandidatesMap = new HashMap<>();
+        this.resPartyPercentMap = new HashMap<>();
 
     }
 //select age_id, age_group, split_part(age_group, '-', 1), split_part(age_group, '-', 2) from d_age ;
@@ -35,7 +37,16 @@ public class Statistics {
         return 0;
     }
 
+    public void calcResPartyPercent(){
+        Map<Integer, Integer> candPartyMap = this.getDictCandidateMap();        // TODO npe leci
+        for(Map.Entry<Integer, Integer> entry : resPartyCandidatesMap.entrySet()){
+            int candId = entry.getKey();
+            int party = candPartyMap.get(candId);
+            this.resPartyPercentMap.put(party, this.resPartyPercentMap.get(party) + entry.getValue());
+        }
 
+
+    }
     public void calcResPartyCandidates(AggregateIterable output){
         output.forEach(new Block<Document>(){
             @Override
@@ -45,5 +56,8 @@ public class Statistics {
                 System.out.println(temp);
             }
         });
+
+        // liczenie statystyk dla partii ogolem
+        calcResPartyPercent();
     }
 }
