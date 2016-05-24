@@ -26,15 +26,16 @@ def candidates():
     db = getDbConnection()
     results = db.executesql("""SELECT d_candidates.name, d_candidates.surname, d_parties.name
                                 FROM d_candidates JOIN d_parties ON
-                                d_candidates.party_id = d_parties.party_id""")
+                                d_candidates.party_id = d_parties.party_id
+                                ORDER BY d_parties.name ASC, d_candidates.surname ASC""")
     for row in results:
         name, lastname, partyname = row
         
         if dictionary is None:
-            dictionary = {party:[name + ", " + lastname]}
+            dictionary = {partyname:[name + ", " + lastname]}
             continue
 
-        if name in dictionary:
+        if partyname in dictionary:
             dictionary[partyname].append(name + ", " + lastname)
         else:
             dictionary[partyname] = [name + ", " + lastname]
