@@ -115,24 +115,27 @@ public class MongoHandler {
 
     }
 
+    public void getResults(){
+        System.out.println("Getting and calculating results from Mongo started on " + new GregorianCalendar().getTime());
+        getResPartyCandidates();
+        getResPartyEducation();
+        getResPartySex();
+        getResPartyConstituency();
+        getResPartyAge();
+        System.out.println("Getting and calculating results from Mongo ended on " + new GregorianCalendar().getTime());
+    }
 
-    public void getData(){
+    public void getResPartyAge(){
         MongoCollection collM = mongoDB.getCollection(dbCollection);
 
-        BasicDBObject fields = new BasicDBObject("PESEL", 1);
+        BasicDBObject fields = new BasicDBObject("Vote", 1);
         //fields.put("Birth", new BasicDBObject("$substr", "\"$PESEL\", 0, 2"));
         fields.put("Birth", new BasicDBObject("$substr", new Object[] {"$PESEL", 0, 6}));
         fields.put("_id", 0);
         BasicDBObject project = new BasicDBObject("$project", fields );
 
         AggregateIterable output =  collM.aggregate(Arrays.asList(project));
-        output.forEach(new Block<Document>(){
-            @Override
-            public void apply(final Document document) {
-                int temp = Integer.parseInt((String)document.get("Birth"));
-                System.out.println(temp);
-            }
-        });
+        stats.calcResPartyAge(output);
         /*while (a.hasNext()){
             System.out.println(a.next());
         }*/
@@ -149,10 +152,7 @@ public class MongoHandler {
         });*/
     }
 
-    public void getResults(){
-        getResPartyCandidates();
-        getResPartyEducation();
-    }
+
     private void getResPartyCandidates(){
         MongoCollection coll = mongoDB.getCollection(dbCollection);
         BasicDBObject groupFields = new BasicDBObject( "_id", "$Vote");
@@ -175,8 +175,36 @@ public class MongoHandler {
 
         AggregateIterable output =  coll.aggregate(Arrays.asList(group));
         stats.calcResPartyEducation(output);
-
     }
+
+    private void getResPartySex(){
+        MongoCollection coll = mongoDB.getCollection(dbCollection);
+
+        BasicDBObject x = new BasicDBObject();
+        x.append("Vote", "$Vote")
+                .append("Gender", "$Gender");
+        BasicDBObject groupFields = new BasicDBObject( "_id", x);
+        groupFields.put("sum", new BasicDBObject( "$sum", 1));
+        BasicDBObject group = new BasicDBObject("$group", groupFields);
+
+        AggregateIterable output =  coll.aggregate(Arrays.asList(group));
+        stats.calcResPartySex(output);
+    }
+
+    private void getResPartyConstituency(){
+        MongoCollection coll = mongoDB.getCollection(dbCollection);
+
+        BasicDBObject x = new BasicDBObject();
+        x.append("Vote", "$Vote")
+                .append("VotingArea", "$VotingArea");
+        BasicDBObject groupFields = new BasicDBObject( "_id", x);
+        groupFields.put("sum", new BasicDBObject( "$sum", 1));
+        BasicDBObject group = new BasicDBObject("$group", groupFields);
+
+        AggregateIterable output =  coll.aggregate(Arrays.asList(group));
+        stats.calcResPartyConstituency(output);
+    }
+
 
 
     public void insertSome(){

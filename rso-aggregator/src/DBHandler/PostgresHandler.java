@@ -5,12 +5,15 @@ import RsoAggregator.Statistics;
 import org.javatuples.Pair;
 
 import java.sql.*;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 
 public class PostgresHandler {
-    public static String[] D_CANDIDATES_COLS = {"candidate_id", "party_id"};
-    public static String D_CANDIDATES_TABLENAME = "d_candidates";
+    public final static String[] D_CANDIDATES_COLS = {"candidate_id", "party_id"};
+    public final static String D_CANDIDATES_TABLENAME = "d_candidates";
+    public final static String[] D_AGE_COLS = {"age_id", "split_part(age_group, '-', 1), split_part(age_group, '-', 2)"};
+    public final static String D_AGE_TABLENAME = "d_age";
 
     static public String dbOutName = "results";
     private Connection conn;
@@ -35,6 +38,7 @@ public class PostgresHandler {
     public void getDictionaries()
     {
         getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
+        getDictData(D_AGE_TABLENAME, D_AGE_COLS);
     }
 
     private void getDictData(String dictName, String[] columns) {
@@ -51,10 +55,25 @@ public class PostgresHandler {
             rs = stmt.executeQuery(query);
 
             // switch - case START
-            Map<Integer, Integer> candidateMap = stats.getDictCandidateMap();
-            while (rs.next()) {
-                candidateMap.put(rs.getInt(1), rs.getInt(2));
-                //System.out.println(rs.getString(1) + " " + rs.getString(2));
+            switch (dictName) {
+                case D_CANDIDATES_TABLENAME:
+                    Map<Integer, Integer> candidateMap = stats.getDictCandidateMap();
+                    while (rs.next()) {
+                        candidateMap.put(rs.getInt(1), rs.getInt(2));
+                        //System.out.println(rs.getString(1) + " " + rs.getString(2));
+                    }
+                    break;
+                case D_AGE_TABLENAME:
+                    Map<Integer, Pair<Integer, Integer>> ageMap = stats.getAgeGroupMap();
+                    while (rs.next()) {
+                        Pair p = new Pair<>(rs.getInt(2), rs.getInt(3));
+                        ageMap.put(rs.getInt(1), p);
+                        //System.out.println(rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3));
+                    }
+                    break;
+                default:
+                    break;
+
             }
             // switch - case END
 
@@ -76,9 +95,119 @@ public class PostgresHandler {
     }
 
     public void insertStats(){
+        System.out.println("Inserting data to Postgres started on " + new GregorianCalendar().getTime());
         insertResPartyCandidates();
         insertResPartyPercent();
         insertResPartyEducation();
+        insertResPartySex();
+        insertResPartyConstituency();
+        insertResPartyAge();
+        System.out.println("Inserting data to Postgres ended on " + new GregorianCalendar().getTime());
+    }
+
+    private void insertResPartyAge(){
+        Map<Pair<Integer, Integer>, Integer> map = stats.getResPartyAgeMap();
+        for(Map.Entry<Pair<Integer, Integer>, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_age (party_id, age_id, votes_sum) " +
+                                "values " +
+                                "(?, ?, ?)" +
+                                "on conflict (party_id, age_id) do update set " +
+                                "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey().getValue0());
+                stmt.setInt(2, entry.getKey().getValue1());
+                stmt.setInt(3, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    //System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            } catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                } catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
+    }
+
+    private void insertResPartyConstituency(){
+        Map<Pair<Integer, Integer>, Integer> map = stats.getResPartyConstituencyMap();
+        for(Map.Entry<Pair<Integer, Integer>, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_constituency (party_id, constituency_id, votes_sum) " +
+                                "values " +
+                                "(?, ?, ?)" +
+                                "on conflict (party_id, constituency_id) do update set " +
+                                "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey().getValue0());
+                stmt.setInt(2, entry.getKey().getValue1());
+                stmt.setInt(3, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    //System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            } catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                } catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
+    }
+
+    private void insertResPartySex(){
+        Map<Pair<Integer, Integer>, Integer> map = stats.getResPartySexMap();
+        for(Map.Entry<Pair<Integer, Integer>, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_sex (party_id, sex_id, votes_sum) " +
+                                "values " +
+                                "(?, ?, ?)" +
+                                "on conflict (party_id, sex_id) do update set " +
+                                "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey().getValue0());
+                stmt.setInt(2, entry.getKey().getValue1());
+                stmt.setInt(3, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    //System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            } catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                } catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
     }
 
     private void insertResPartyEducation(){

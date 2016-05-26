@@ -4,11 +4,6 @@ package RsoAggregator;
 import DBHandler.MongoHandler;
 import DBHandler.PostgresHandler;
 
-import java.sql.Array;
-import java.sql.ResultSet;
-
-import static DBHandler.PostgresHandler.D_CANDIDATES_COLS;
-import static DBHandler.PostgresHandler.D_CANDIDATES_TABLENAME;
 
 public class RsoAggregator {
     public static void main(String[] args){
@@ -25,7 +20,7 @@ public class RsoAggregator {
             mongoDB.getResults();
             postDB.insertStats();
             //mongoDB.insertSome();
-            // mongoDB.getData();
+            //mongoDB.getData();
         }
         catch(Exception e){
             e.printStackTrace();
