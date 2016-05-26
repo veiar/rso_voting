@@ -2,19 +2,18 @@ package DBHandler;
 
 import RsoAggregator.Dictionary;
 import RsoAggregator.Statistics;
+import org.javatuples.Pair;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 
 
 public class PostgresHandler {
     public static String[] D_CANDIDATES_COLS = {"candidate_id", "party_id"};
     public static String D_CANDIDATES_TABLENAME = "d_candidates";
+
     static public String dbOutName = "results";
     private Connection conn;
-    private Dictionary dict;
     private Statistics stats;
     public PostgresHandler(Statistics s){
         conn = null;
@@ -25,38 +24,135 @@ public class PostgresHandler {
                     .getConnection("jdbc:postgresql://localhost:5432/" + dbOutName,
                             "postgres", "123");
             conn.setAutoCommit(false);
-        }
-        catch (Exception e){
+        } catch (Exception e){
             //e.printStackTrace();
             System.err.println(e.getClass().getName()+": "+e.getMessage());
             System.exit(0);
         }
         System.out.println("Connected to Postgres...");
-        dict = new Dictionary();
     }
 
+    public void getDictionaries()
+    {
+        getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
+    }
 
-    public void getDictData(String dictName, String[] columns) throws SQLException{
+    private void getDictData(String dictName, String[] columns) {
         StringBuilder sb = new StringBuilder();
         for (String n : columns) {
             if (sb.length() > 0) sb.append(',');
             sb.append(n);
         }
-        Statement stmt = conn.createStatement();
-        String query = "select " + sb.toString() + " from " + dictName + ";";
-        ResultSet rs = stmt.executeQuery(query);
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            String query = "select " + sb.toString() + " from " + dictName + ";";
+            rs = stmt.executeQuery(query);
 
-        Map<Integer, Integer> candidateMap = dict.getDictCandidateMap();
-        while(rs.next()){
-            candidateMap.put(rs.getInt(1), rs.getInt(2));
-            //System.out.println(rs.getString(1) + " " + rs.getString(2));
+            // switch - case START
+            Map<Integer, Integer> candidateMap = stats.getDictCandidateMap();
+            while (rs.next()) {
+                candidateMap.put(rs.getInt(1), rs.getInt(2));
+                //System.out.println(rs.getString(1) + " " + rs.getString(2));
+            }
+            // switch - case END
+
+            rs.close();
+            stmt.close();
+        } catch (SQLException e){
+            System.err.println("Error while downloading dictionaries from DB! Error code: " + e.getClass().getName()+":"+e.getMessage());
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException e1){
+                System.err.println("Error while closing statement or result set! Error code: " + e1.getClass().getName()+":"+e1.getMessage());
+            }
         }
-        rs.close();
-        stmt.close();
     }
 
-    public void insertResPartyCandidates(Statistics stats){
-        Map<Integer, Integer> map =  stats.getResPartyCandidatesMap();
+    public void insertStats(){
+        insertResPartyCandidates();
+        insertResPartyPercent();
+        insertResPartyEducation();
+    }
+
+    private void insertResPartyEducation(){
+        Map<Pair<Integer, Integer>, Integer> map = stats.getResPartyEducationMap();
+        for(Map.Entry<Pair<Integer, Integer>, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_education (party_id, education_id, votes_sum) " +
+                                "values " +
+                                "(?, ?, ?)" +
+                                "on conflict (party_id, education_id) do update set " +
+                                //"party_id = excluded.party_id, " +
+                                "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey().getValue0());
+                stmt.setInt(2, entry.getKey().getValue1());
+                stmt.setInt(3, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    //System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            } catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                } catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
+    }
+
+    private void insertResPartyPercent(){
+        Map<Integer, Integer> map = stats.getResPartyPercentMap();
+        for(Map.Entry<Integer, Integer> entry : map.entrySet()){
+            try {
+                String sql =
+                        "insert into res_party_percent (party_id, votes_sum) " +
+                                "values " +
+                                "(?, ?)" +
+                                "on conflict (party_id) do update set " +
+                                //"party_id = excluded.party_id, " +
+                                "votes_sum = excluded.votes_sum;";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, entry.getKey());
+                stmt.setInt(2, entry.getValue());
+                int count = stmt.executeUpdate();
+                if(count > 0) {
+                    conn.commit();
+                    //System.out.println("Commit!");
+                }
+                else {
+                    System.out.println("0 rows changed!");
+                }
+                stmt.close();
+            } catch (Exception e){
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                try{
+                    conn.rollback();
+                    System.err.println("Rollback!");
+                } catch (Exception e1){
+                    System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
+                }
+            }
+        }
+    }
+    private void insertResPartyCandidates(){
+        Map<Integer, Integer> map = stats.getResPartyCandidatesMap();
         for(Map.Entry<Integer, Integer> entry : map.entrySet()){
             try {
                 String sql =
@@ -64,7 +160,7 @@ public class PostgresHandler {
                         "values " +
                         "(?, ?)" +
                         "on conflict (candidate_id) do update set " +
-                        "candidate_id = excluded.candidate_id, " +
+                        //"candidate_id = excluded.candidate_id, " +
                         "votes_sum = excluded.votes_sum;";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setInt(1, entry.getKey());
@@ -72,20 +168,18 @@ public class PostgresHandler {
                 int count = stmt.executeUpdate();
                 if(count > 0) {
                     conn.commit();
-                    System.out.println("Commit!");
+                    //System.out.println("Commit!");
                 }
                 else {
                     System.out.println("0 rows changed!");
                 }
                 stmt.close();
-            }
-            catch (Exception e){
+            } catch (Exception e){
                 System.err.println(e.getClass().getName()+": "+e.getMessage());
                 try{
                     conn.rollback();
                     System.err.println("Rollback!");
-                }
-                catch (Exception e1){
+                } catch (Exception e1){
                     System.err.println("Rollback failed!\n" + e1.getClass().getName()+ e1.getMessage());
                 }
             }
@@ -102,7 +196,7 @@ public class PostgresHandler {
             int count = stmt.executeUpdate();
             if(count > 0) {
                 conn.commit();
-                System.out.println("Commit!");
+                //System.out.println("Commit!");
             }
             else {
                 System.out.println("0 rows changed!");

@@ -14,15 +14,16 @@ public class RsoAggregator {
     public static void main(String[] args){
         MongoHandler mongoDB = null;
         PostgresHandler postDB = null;
+        Statistics stats = new Statistics();
 
 
         try {
-            mongoDB = new MongoHandler();
-            postDB = new PostgresHandler(mongoDB.getStats());
-            postDB.getDictData(D_CANDIDATES_TABLENAME, D_CANDIDATES_COLS);
+            mongoDB = new MongoHandler(stats);
+            postDB = new PostgresHandler(stats);
+            postDB.getDictionaries();
             //stats.calcAgeFromPesel("901204");
-            mongoDB.getResPartyCandidates();
-            postDB.insertResPartyCandidates(mongoDB.getStats());
+            mongoDB.getResults();
+            postDB.insertStats();
             //mongoDB.insertSome();
             // mongoDB.getData();
         }

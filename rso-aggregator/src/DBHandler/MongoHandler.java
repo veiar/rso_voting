@@ -21,8 +21,9 @@ public class MongoHandler {
     private MongoClient mongoClient;
     private MongoDatabase mongoDB;
     private Map<String, List<String>> propertiesMap;
-    private Statistics stats = null;
-    public MongoHandler(){
+    private Statistics stats;// = null;
+    public MongoHandler(Statistics s){
+        stats = s;
         init();
     }
 
@@ -41,7 +42,7 @@ public class MongoHandler {
         this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
         this.mongoDB = mongoClient.getDatabase(dbName);
 
-        stats = new Statistics();
+        //stats = new Statistics();
     }
 
     private void getProperties() throws IOException{
@@ -148,8 +149,11 @@ public class MongoHandler {
         });*/
     }
 
-
-    public void getResPartyCandidates(){
+    public void getResults(){
+        getResPartyCandidates();
+        getResPartyEducation();
+    }
+    private void getResPartyCandidates(){
         MongoCollection coll = mongoDB.getCollection(dbCollection);
         BasicDBObject groupFields = new BasicDBObject( "_id", "$Vote");
         groupFields.put("sum", new BasicDBObject( "$sum", 1));
@@ -157,6 +161,20 @@ public class MongoHandler {
 
         AggregateIterable output =  coll.aggregate(Arrays.asList(group));
         stats.calcResPartyCandidates(output);
+    }
+
+    private void getResPartyEducation(){
+        MongoCollection coll = mongoDB.getCollection(dbCollection);
+
+        BasicDBObject x = new BasicDBObject();
+        x.append("Vote", "$Vote")
+                .append("Education", "$Education");
+        BasicDBObject groupFields = new BasicDBObject( "_id", x);
+        groupFields.put("sum", new BasicDBObject( "$sum", 1));
+        BasicDBObject group = new BasicDBObject("$group", groupFields);
+
+        AggregateIterable output =  coll.aggregate(Arrays.asList(group));
+        stats.calcResPartyEducation(output);
 
     }
 
@@ -195,8 +213,4 @@ public class MongoHandler {
         mongoDB.getCollection(dbCollection).insertMany(docList);
     }
 
-
-    private void calcStats(){
-
-    }
 }
