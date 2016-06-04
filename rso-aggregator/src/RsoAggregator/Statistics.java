@@ -1,5 +1,6 @@
 package RsoAggregator;
 
+import DBHandler.MongoHandler;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
 import com.mongodb.client.AggregateIterable;
@@ -32,6 +33,14 @@ public class Statistics extends Dictionary{
     }
 //select age_id, age_group, split_part(age_group, '-', 1), split_part(age_group, '-', 2) from d_age ;
 
+    public void clear(){
+        this.resPartyConstituencyMap.clear();
+        this.resPartyPercentMap.clear();
+        this.resPartyCandidatesMap.clear();
+        this.resPartySexMap.clear();
+        this.resPartyAgeMap.clear();
+        this.resPartyEducationMap.clear();
+    }
     public Map<Integer, Integer> getResPartyCandidatesMap() {return this.resPartyCandidatesMap; }
     public Map<Integer, Integer> getResPartyPercentMap() {return this.resPartyPercentMap; }
     public Map<Pair<Integer, Integer>, Integer> getResPartyAgeMap() {return this.resPartyAgeMap; }
@@ -156,6 +165,74 @@ public class Statistics extends Dictionary{
                 //      " " + obj.get("sum").toString());
             }
         });
+    }
+
+
+    private void m_calculateResPartyPercent(int party_id){
+        if (resPartyPercentMap.containsKey(party_id)) {
+            resPartyPercentMap.put(party_id, resPartyPercentMap.get(party_id) + 1);
+        } else {
+            resPartyPercentMap.put(party_id, 1);
+        }
+    }
+    private void m_calculateResPartyCandidate(MongoHandler.VoteInfo vi){
+        int candId = vi.getVote();
+        if (resPartyCandidatesMap.containsKey(candId)) {
+            resPartyCandidatesMap.put(candId, resPartyCandidatesMap.get(candId) + 1);
+        } else {
+            resPartyCandidatesMap.put(candId, 1);
+        }
+    }
+
+    private void m_calculateResPartyConstituency(MongoHandler.VoteInfo vi, int party_id){
+        Pair p = new Pair<>(party_id, vi.getVotingArea());
+        if (resPartyConstituencyMap.containsKey(p)) {
+            resPartyConstituencyMap.put(p, resPartyConstituencyMap.get(p) + 1);
+        } else {
+            resPartyConstituencyMap.put(p, 1);
+        }
+    }
+
+    private void m_calculateResPartySex(MongoHandler.VoteInfo vi, int party_id){
+        Pair p = new Pair<>(party_id, vi.getGender());
+        if (resPartySexMap.containsKey(p)) {
+            resPartySexMap.put(p, resPartySexMap.get(p) + 1);
+        } else {
+            resPartySexMap.put(p, 1);
+        }
+    }
+    private void m_calculateResPartyEducation(MongoHandler.VoteInfo vi, int party_id){
+        Pair p = new Pair<>(party_id, vi.getEducation());
+        if (resPartyEducationMap.containsKey(p)) {
+            resPartyEducationMap.put(p, resPartyEducationMap.get(p) + 1);
+        } else {
+            resPartyEducationMap.put(p, 1);
+        }
+    }
+
+    private void m_calculateResPartyAge(MongoHandler.VoteInfo vi, int party_id){
+        String pesel = vi.getPesel();
+        int age = calcAgeFromPesel(pesel);
+        int ageId = getAgeIdBasedOnAge(age);
+        Pair p = new Pair<>(party_id, ageId);
+        if (resPartyAgeMap.containsKey(p)) {
+            resPartyAgeMap.put(p, resPartyAgeMap.get(p) + 1);
+        } else {
+            resPartyAgeMap.put(p, 1);
+        }
+    }
+    public void calculateAll(Map<String, MongoHandler.VoteInfo> map){
+        final Map<Integer, Integer> candPartyMap = this.getDictCandidateMap();
+        for (Map.Entry<String, MongoHandler.VoteInfo> e : map.entrySet()){
+            MongoHandler.VoteInfo vi = e.getValue();
+            int party_id = candPartyMap.get(vi.getVote());
+            m_calculateResPartyAge(vi, party_id);
+            m_calculateResPartyEducation(vi, party_id);
+            m_calculateResPartySex(vi, party_id);
+            m_calculateResPartyConstituency(vi, party_id);
+            m_calculateResPartyCandidate(vi);
+            m_calculateResPartyPercent(party_id);
+        }
     }
 
 }

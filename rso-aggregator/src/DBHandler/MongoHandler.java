@@ -13,20 +13,90 @@ import java.util.*;
 
 //db.createUser({"user": "pm", "pwd": "pass123", roles: ["readWrite", "dbAdmin"]})
 public class MongoHandler {
-    private String user;// = "pm";
-    private char[] pass;// = "pass123".toCharArray();
-    private String dbName;// = "testDB";
-    private String dbAddress;
-    private String dbCollection;
-    private MongoClient mongoClient;
-    private MongoDatabase mongoDB;
-    private Map<String, List<String>> propertiesMap;
-    private Statistics stats;// = null;
+    // TODO wypieprzyc
+    private String user, user2;// = "pm";
+    private char[] pass, pass2;// = "pass123".toCharArray();
+    private String dbName, dbName2;// = "testDB";
+    private String dbAddress, dbAddress2;
+    private String dbCollection, dbCollection2;
+    private MongoClient mongoClient, mongoClient2;
+    private MongoDatabase mongoDB, mongoDB2;
+    // TODO end
+    private Statistics stats;
+    private Map<String, VoteInfo> mapAllData;
+    private List<MongoInstance> mapMongoInstances;
     public MongoHandler(Statistics s){
         stats = s;
+        mapAllData = new HashMap<>();
+        mapMongoInstances = new ArrayList<>();
         init();
     }
+    public void clearStats(){
+        stats.clear();
+    }
+    public class VoteInfo{
+        VoteInfo(String _pesel, int _vote, int _votingArea, int _gender, int _education, String _rowId){
+            this.pesel = _pesel;
+            this.vote = _vote;
+            this.votingArea = _votingArea;
+            this.gender = _gender;
+            this.education = _education;
+            this.rowId = _rowId;
+        }
+        private String pesel;
+        private int vote;
+        private int votingArea;
+        private int gender;
+        private int education;
+        private String rowId;
 
+        public String getPesel() { return pesel; }
+        public int getVote() { return vote; }
+        public int getVotingArea() { return votingArea; }
+        public int getGender() { return gender; }
+        public int getEducation() { return education; }
+    }
+
+    public void getAllData(){
+        List<Map<String, VoteInfo>> aggregList = new ArrayList<>();
+        for(int i=0; i<mapMongoInstances.size(); ++i){
+            MongoInstance mi = mapMongoInstances.get(i);
+            MongoCollection coll = mi.getMongoDB().getCollection(mi.getDbCollection());
+            final Map<String, VoteInfo> map = new HashMap<>();
+            BasicDBObject noId = new BasicDBObject();
+            noId.append("_id", 0);
+            FindIterable output = coll.find();
+            output.forEach(new Block<Document>(){
+                @Override
+                public void apply(final Document document) {
+                    String rowId = document.getString("rowId");
+                    VoteInfo vi = new VoteInfo(
+                            document.getString("PESEL"),
+                            document.getInteger("Vote"),
+                            document.getInteger("VotingArea"),
+                            document.getInteger("Gender"),
+                            document.getInteger("Education"),
+                            rowId);
+                    map.put(rowId, vi);
+                    //System.out.println(document);
+                }
+            });
+            aggregList.add(map);
+        }
+        removeDuplicates(aggregList);
+        stats.calculateAll(this.mapAllData);
+    }
+
+    public void clear(){
+        this.mapAllData.clear();
+        clearStats();
+    }
+
+    private void removeDuplicates(List<Map<String, VoteInfo>> list){
+        for(int i=0; i<list.size(); ++i){
+            this.mapAllData.putAll(list.get(i));
+        }   // 8k wierszy z drugiej bazy ma to samo rowId i wylecialo czyli niby dziala
+    }
 
     public Statistics getStats() {return this.stats;}
     private void init(){
@@ -38,33 +108,93 @@ public class MongoHandler {
             System.exit(1);
         }
         MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
+        MongoCredential cred2 = MongoCredential.createCredential(user2, dbName2, pass2);
         //this.mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
         this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
         this.mongoDB = mongoClient.getDatabase(dbName);
 
+        this.mongoClient2 = new MongoClient(new ServerAddress(this.dbAddress2), Arrays.asList(cred2));
+        this.mongoDB2 = mongoClient2.getDatabase(dbName2);
+
         //stats = new Statistics();
     }
 
+    private class MongoInstance{
+        private String user;
+        private char[] pass;
+        private String dbName;
+        private String dbAddress;
+        private String dbCollection;
+        private MongoClient mongoClient;
+        private MongoDatabase mongoDB;
+        public String getUser() { return user; }
+        public char[] getPass() {return pass; }
+        public String getDbName() { return dbName; }
+        public String getDbAddress() { return dbAddress; }
+        public String getDbCollection() { return dbCollection; }
+        public MongoClient getMongoClient() { return mongoClient; }
+        public MongoDatabase getMongoDB() { return mongoDB; }
+
+        MongoInstance(String _user, char[] _pass, String _dbName, String _dbAddress, String _dbCollection){
+            this.user = _user;
+            this.pass = _pass;
+            this.dbName = _dbName;
+            this.dbAddress = _dbAddress;
+            this.dbCollection = _dbCollection;
+            this.mongoClient = null;
+            this.mongoDB = null;
+        }
+
+        void setConnection(){
+            MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
+            this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
+            this.mongoDB = mongoClient.getDatabase(dbName);
+        }
+
+    }
     private void getProperties() throws IOException{
         java.util.Properties properties = new Properties();
         properties.load(new FileInputStream("cfg/aggregatorMongo.cfg"));
-        this.propertiesMap = new HashMap<>();
+        Map<String, List<String>> propertiesMap = new HashMap<>();
         Set<String> data = properties.stringPropertyNames();
         for(String key : data){
             propertiesMap.put(key, Arrays.asList(properties.getProperty(key).split(",")));
         }
 
+        for(int i=0; i < propertiesMap.get("mongoUser2").size(); ++i){
+            MongoInstance mi = new MongoInstance(
+                    propertiesMap.get("mongoUser2").get(i),
+                    propertiesMap.get("mongoPass2").get(i).toCharArray(),
+                    propertiesMap.get("mongoDBName2").get(i),
+                    propertiesMap.get("mongoDBAddress2").get(i),
+                    propertiesMap.get("mongoDBCollection2").get(i)
+            );
+        mi.setConnection();
+        mapMongoInstances.add(mi);
+
+        }
         this.user = propertiesMap.get("mongoUser2").get(0);
         this.pass = propertiesMap.get("mongoPass2").get(0).toCharArray();
         this.dbName = propertiesMap.get("mongoDBName2").get(0);
         this.dbAddress = propertiesMap.get("mongoDBAddress2").get(0);
         this.dbCollection = propertiesMap.get("mongoDBCollection2").get(0);
+
+        this.user2 = propertiesMap.get("mongoUser2").get(1);
+        this.pass2 = propertiesMap.get("mongoPass2").get(1).toCharArray();
+        this.dbName2 = propertiesMap.get("mongoDBName2").get(1);
+        this.dbAddress2 = propertiesMap.get("mongoDBAddress2").get(1);
+        this.dbCollection2 = propertiesMap.get("mongoDBCollection2").get(1);
         /*this.user = properties.getProperty("mongoUser");
         this.pass = properties.getProperty("mongoPass").toCharArray();
         this.dbName = properties.getProperty("mongoDBName");*/
     }
     public void close(){
         this.mongoClient.close();
+        this.mongoClient2.close();
+
+        for(int i=0; i < mapMongoInstances.size(); ++i){
+            mapMongoInstances.get(0).mongoClient.close();
+        }
     }
 
     public void test(Statistics stats){
@@ -211,7 +341,7 @@ public class MongoHandler {
         Random random = new Random();
         boolean gender = false, edu = true;
         ArrayList<Document> docList = new ArrayList<>();
-        for(int i = 0; i < 1000; ++i) {
+        for(int i = 0; i < 5000; ++i) {
             int year = random.nextInt(99)+1;
             int month = random.nextInt(12)+1;
             int day = random.nextInt(31)+1;
@@ -228,9 +358,10 @@ public class MongoHandler {
             Document obj = new Document("PESEL", pesel)
                     .append("Vote", random.nextInt(15))
                     .append("VotingArea", random.nextInt(16))
-                    .append("Gender", gender ? "M" : "K")
+                    .append("Gender", random.nextInt(2))
                     .append("Address", random.nextInt(100))
-                    .append("Education", edu ? "High" : "Low");
+                    .append("Education", random.nextInt(5))
+                    .append("rowId", UUID.randomUUID().toString());
             //mongoDB.getCollection("testColl").insertOne(obj);
 
             gender = !gender;
@@ -238,7 +369,8 @@ public class MongoHandler {
 
             docList.add(obj);
         }
-        mongoDB.getCollection(dbCollection).insertMany(docList);
+        //mongoDB.getCollection(dbCollection).insertMany(docList);
+        mongoDB2.getCollection(dbCollection2).insertMany(docList);
     }
 
 }
