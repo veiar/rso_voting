@@ -4,15 +4,29 @@ import RsoAggregator.Statistics;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
+import com.sun.corba.se.spi.monitoring.MonitoringFactories;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static RsoAggregator.RsoAggregator.logger;
 
 //db.createUser({"user": "pm", "pwd": "pass123", roles: ["readWrite", "dbAdmin"]})
 public class MongoHandler {
+    private static String m_userName = "pm";
+    private static String m_password = "pass123";
+    private static String m_dbName = "dbNew";
+    private static String m_port = "27017";
+    private static String m_dbCollection = "testColl";
     // TODO wypieprzyc
     private String user, user2;// = "pm";
     private char[] pass, pass2;// = "pass123".toCharArray();
@@ -29,6 +43,7 @@ public class MongoHandler {
         stats = s;
         mapAllData = new HashMap<>();
         mapMongoInstances = new ArrayList<>();
+
         init();
     }
     public void clearStats(){
@@ -60,6 +75,7 @@ public class MongoHandler {
     public void getAllData(){
         List<Map<String, VoteInfo>> aggregList = new ArrayList<>();
         for(int i=0; i<mapMongoInstances.size(); ++i){
+            System.out.println("Getting data from " + i + ". Mongo instance... " + new GregorianCalendar().getTime());
             MongoInstance mi = mapMongoInstances.get(i);
             MongoCollection coll = mi.getMongoDB().getCollection(mi.getDbCollection());
             final Map<String, VoteInfo> map = new HashMap<>();
@@ -93,6 +109,7 @@ public class MongoHandler {
     }
 
     private void removeDuplicates(List<Map<String, VoteInfo>> list){
+        System.out.println("Removing duplicates... " + new GregorianCalendar().getTime());
         for(int i=0; i<list.size(); ++i){
             this.mapAllData.putAll(list.get(i));
         }   // 8k wierszy z drugiej bazy ma to samo rowId i wylecialo czyli niby dziala
@@ -100,14 +117,18 @@ public class MongoHandler {
 
     public Statistics getStats() {return this.stats;}
     private void init(){
-        try {
-            getProperties();
+        getProperties();
+
+        while(!setConnectionToAllMongo()){
+            logger.log(Level.SEVERE, "Unable to connect to any Mongo instance, retrying in 5 sec...");
+            try{
+                Thread.sleep(5000);
+            } catch (InterruptedException e){
+                logger.log(Level.SEVERE, "Internal error!");
+            }
         }
-        catch (IOException e){
-            System.err.println("Loading from cfg file failed, exiting!");
-            System.exit(1);
-        }
-        MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
+
+/*        MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
         MongoCredential cred2 = MongoCredential.createCredential(user2, dbName2, pass2);
         //this.mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
         this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
@@ -115,8 +136,8 @@ public class MongoHandler {
 
         this.mongoClient2 = new MongoClient(new ServerAddress(this.dbAddress2), Arrays.asList(cred2));
         this.mongoDB2 = mongoClient2.getDatabase(dbName2);
+*/
 
-        //stats = new Statistics();
     }
 
     private class MongoInstance{
@@ -145,14 +166,70 @@ public class MongoHandler {
             this.mongoDB = null;
         }
 
-        void setConnection(){
-            MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
-            this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred));
-            this.mongoDB = mongoClient.getDatabase(dbName);
+        public boolean setConnection(){
+            try {
+                MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
+
+                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred),
+                        MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s
+                this.mongoDB = mongoClient.getDatabase(dbName);
+                Document doc = mongoDB.runCommand(new BasicDBObject("ping", 1));
+                logger.log(Level.INFO, "Connected to MongoDB! -host: " + dbAddress + " -user: " + user
+                        + " -dbName: " + dbName + " -collection: " + dbCollection);
+                return true;
+            }catch (Exception e){
+                logger.log(Level.SEVERE, "Failed to connect to MongoDB! Timeout reached! -host: " + dbAddress + " -user: " + user
+                        + " -dbName: " + dbName + " -collection: " + dbCollection);
+                return false;
+            }
         }
 
+        public boolean checkStatus(){
+            try{
+                Document doc = mongoDB.runCommand(new BasicDBObject("ping", 1));
+            } catch (Exception e){
+                logger.log(Level.SEVERE, "Failed to ping MongoDB! " + dbAddress);
+                return false;
+            }
+            return true;
+        }
     }
-    private void getProperties() throws IOException{
+
+    // zwraca true jesli udalo sie polaczyc do jakiejkolwiek bazy mongo
+    private boolean setConnectionToAllMongo(){
+        int mongoCount = 0;
+        for(MongoInstance mi : mapMongoInstances){
+            if(mi.setConnection()) {
+                mongoCount++;
+            }
+        }
+        return mongoCount > 0;
+    }
+
+    private void getProperties(){
+        Map<String, String> env = System.getenv();
+        if(!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")){
+            System.err.println("No environment variables set! Bye!");
+            logger.log(Level.SEVERE, "No environment variables set! Bye!");
+            System.exit(2);
+        }
+        String mongoAllHosts = env.get("MONGO_HOSTS");
+        String postgresAllHosts = env.get("POSTGRES_HOSTS");
+        String[] mongoHosts = mongoAllHosts.split(",");
+        String[] postgresHosts = postgresAllHosts.split(",");
+
+        for(String t : mongoHosts){
+            MongoInstance mi = new MongoInstance(
+                    m_userName,
+                    m_password.toCharArray(),
+                    m_dbName,
+                    t + ":" + m_port,
+                    m_dbCollection
+            );
+            //mi.setConnection();
+            mapMongoInstances.add(mi);  // moze uda sie pozniej polaczyc, wiec i tak dodajemy do mapy
+        }
+/*
         java.util.Properties properties = new Properties();
         properties.load(new FileInputStream("cfg/aggregatorMongo.cfg"));
         Map<String, List<String>> propertiesMap = new HashMap<>();
@@ -183,14 +260,14 @@ public class MongoHandler {
         this.pass2 = propertiesMap.get("mongoPass2").get(1).toCharArray();
         this.dbName2 = propertiesMap.get("mongoDBName2").get(1);
         this.dbAddress2 = propertiesMap.get("mongoDBAddress2").get(1);
-        this.dbCollection2 = propertiesMap.get("mongoDBCollection2").get(1);
+        this.dbCollection2 = propertiesMap.get("mongoDBCollection2").get(1);*/
         /*this.user = properties.getProperty("mongoUser");
         this.pass = properties.getProperty("mongoPass").toCharArray();
         this.dbName = properties.getProperty("mongoDBName");*/
     }
     public void close(){
-        this.mongoClient.close();
-        this.mongoClient2.close();
+       /* this.mongoClient.close();
+        this.mongoClient2.close();*/
 
         for(int i=0; i < mapMongoInstances.size(); ++i){
             mapMongoInstances.get(0).mongoClient.close();

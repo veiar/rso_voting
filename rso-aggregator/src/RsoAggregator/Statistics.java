@@ -222,6 +222,7 @@ public class Statistics extends Dictionary{
         }
     }
     public void calculateAll(Map<String, MongoHandler.VoteInfo> map){
+        System.out.println("Stats calculation for " + map.size() + " rows started on " + new GregorianCalendar().getTime());
         final Map<Integer, Integer> candPartyMap = this.getDictCandidateMap();
         for (Map.Entry<String, MongoHandler.VoteInfo> e : map.entrySet()){
             MongoHandler.VoteInfo vi = e.getValue();
@@ -233,6 +234,8 @@ public class Statistics extends Dictionary{
             m_calculateResPartyCandidate(vi);
             m_calculateResPartyPercent(party_id);
         }
+
+        System.out.println("Stats calculation done on " + new GregorianCalendar().getTime());
     }
 
 }
