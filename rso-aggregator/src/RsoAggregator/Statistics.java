@@ -7,13 +7,13 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.javatuples.Pair;
-import org.javatuples.Tuple;
-import org.json.JSONArray;
+
 import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import static RsoAggregator.RsoAggregator.logger;
 
 public class Statistics extends Dictionary{
     private Map<Integer, Integer> resPartyCandidatesMap;    // <candidate_id, votes_sum>
@@ -236,6 +236,7 @@ public class Statistics extends Dictionary{
         }
 
         System.out.println("Stats calculation done on " + new GregorianCalendar().getTime());
+
     }
 
 }

@@ -4,6 +4,7 @@ import DBHandler.MongoHandler;
 import DBHandler.PostgresHandler;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -47,6 +48,17 @@ import java.util.logging.SimpleFormatter;
         public static Logger logger = Logger.getLogger("RSO-Aggregator");
 
         public static void main(String[] args){
+            /*String IP = "52.36.29.80";
+            try {   // tu jakis while dla shadowa, jak zwroci false to zaczyna dzialac
+                Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + IP);
+                int returnVal = p1.waitFor();
+                boolean reachable = (returnVal==0);
+                System.out.println("-------- is Reachable? " + reachable);
+            }catch(Exception e){
+                System.out.println(e.getClass() + " : " + e.getMessage() );
+            }*/
+
+
             MongoHandler mongoDB = null;
             PostgresHandler postDB = null;
             Statistics stats = new Statistics();
@@ -88,9 +100,7 @@ import java.util.logging.SimpleFormatter;
                 postDB.getDictionaries();
                 mongoDB.getAllData();
                 postDB.insertStats();
-                //ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-                //executor.scheduleWithFixedDelay(new WorkerThread(), 10, 5, TimeUnit.SECONDS)
-                //executor.scheduleWithFixedDelay(new Task(mongoDB, postDB), 1, 15, TimeUnit.SECONDS);
+
                 /*int count = 0;
                 while(count < 10) {
                     mongoDB.clear();
@@ -111,10 +121,12 @@ import java.util.logging.SimpleFormatter;
                 try {
                     if (mongoDB != null) {
                         mongoDB.close();
+                        logger.log(Level.INFO, "MongoDB connection closed...");
                         System.out.println("MongoDB connection closed...");
                     }
                     if (postDB != null){
                         postDB.close();
+                        logger.log(Level.INFO, "Postgres connection closed...");
                         System.out.println("Postgres connection closed...");
                     }
                 }

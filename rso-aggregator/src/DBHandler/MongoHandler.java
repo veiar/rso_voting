@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 import static RsoAggregator.RsoAggregator.logger;
 
@@ -25,8 +25,10 @@ public class MongoHandler {
     private static String m_userName = "pm";
     private static String m_password = "pass123";
     private static String m_dbName = "dbNew";
+    private static String m_dbName2 = "dbNew2";
     private static String m_port = "27017";
     private static String m_dbCollection = "testColl";
+    private static String m_dbCollection2 = "testColl2";
     // TODO wypieprzyc
     private String user, user2;// = "pm";
     private char[] pass, pass2;// = "pass123".toCharArray();
@@ -110,9 +112,14 @@ public class MongoHandler {
 
     private void removeDuplicates(List<Map<String, VoteInfo>> list){
         System.out.println("Removing duplicates... " + new GregorianCalendar().getTime());
+        logger.log(Level.INFO, "Removing duplicates...");
+        for(int i=0; i<list.size(); ++i){
+            logger.log(Level.INFO, i + ". " + list.get(i).size() + " rows");
+        }
         for(int i=0; i<list.size(); ++i){
             this.mapAllData.putAll(list.get(i));
-        }   // 8k wierszy z drugiej bazy ma to samo rowId i wylecialo czyli niby dziala
+        }
+        logger.log(Level.INFO, "Duplicates removed! " + this.mapAllData.size() + " rows remaining to process...");
     }
 
     public Statistics getStats() {return this.stats;}
@@ -148,6 +155,7 @@ public class MongoHandler {
         private String dbCollection;
         private MongoClient mongoClient;
         private MongoDatabase mongoDB;
+        boolean active;
         public String getUser() { return user; }
         public char[] getPass() {return pass; }
         public String getDbName() { return dbName; }
@@ -164,6 +172,7 @@ public class MongoHandler {
             this.dbCollection = _dbCollection;
             this.mongoClient = null;
             this.mongoDB = null;
+            this.active = false;
         }
 
         public boolean setConnection(){
@@ -176,6 +185,7 @@ public class MongoHandler {
                 Document doc = mongoDB.runCommand(new BasicDBObject("ping", 1));
                 logger.log(Level.INFO, "Connected to MongoDB! -host: " + dbAddress + " -user: " + user
                         + " -dbName: " + dbName + " -collection: " + dbCollection);
+                this.active = true;
                 return true;
             }catch (Exception e){
                 logger.log(Level.SEVERE, "Failed to connect to MongoDB! Timeout reached! -host: " + dbAddress + " -user: " + user
@@ -217,15 +227,16 @@ public class MongoHandler {
         String postgresAllHosts = env.get("POSTGRES_HOSTS");
         String[] mongoHosts = mongoAllHosts.split(",");
         String[] postgresHosts = postgresAllHosts.split(",");
-
+        boolean lol = false;
         for(String t : mongoHosts){
             MongoInstance mi = new MongoInstance(
                     m_userName,
                     m_password.toCharArray(),
-                    m_dbName,
+                    lol? m_dbName2 : m_dbName,
                     t + ":" + m_port,
-                    m_dbCollection
+                    lol? m_dbCollection2 : m_dbCollection
             );
+            lol = !lol;
             //mi.setConnection();
             mapMongoInstances.add(mi);  // moze uda sie pozniej polaczyc, wiec i tak dodajemy do mapy
         }
@@ -418,7 +429,7 @@ public class MongoHandler {
         Random random = new Random();
         boolean gender = false, edu = true;
         ArrayList<Document> docList = new ArrayList<>();
-        for(int i = 0; i < 5000; ++i) {
+        for(int i = 0; i < 250000; ++i) {
             int year = random.nextInt(99)+1;
             int month = random.nextInt(12)+1;
             int day = random.nextInt(31)+1;
@@ -437,7 +448,7 @@ public class MongoHandler {
                     .append("VotingArea", random.nextInt(16))
                     .append("Gender", random.nextInt(2))
                     .append("Address", random.nextInt(100))
-                    .append("Education", random.nextInt(5))
+                    .append("Education", random.nextInt(3))
                     .append("rowId", UUID.randomUUID().toString());
             //mongoDB.getCollection("testColl").insertOne(obj);
 
@@ -446,8 +457,13 @@ public class MongoHandler {
 
             docList.add(obj);
         }
+        MongoInstance mi = mapMongoInstances.get(0);
+        mi.getMongoDB().getCollection(mi.getDbCollection()).insertMany(docList);
+        /*for( MongoInstance mi : mapMongoInstances){
+            mi.getMongoDB().getCollection(mi.getDbCollection()).insertMany(docList);
+        }*/
         //mongoDB.getCollection(dbCollection).insertMany(docList);
-        mongoDB2.getCollection(dbCollection2).insertMany(docList);
+        //mongoDB2.getCollection(dbCollection2).insertMany(docList);
     }
 
 }
