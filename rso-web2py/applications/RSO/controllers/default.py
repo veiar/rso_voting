@@ -176,6 +176,33 @@ def getConstituenciesPercentageData():
 
     return dict(votes=dictionary, districts=districts)
 
+def getAgePercentageData():
+    dictionary = None
+    districts = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_age.votes_sum,d_age.age_group
+                            FROM d_parties JOIN res_party_age ON
+                            d_parties.party_id = res_party_age.party_id
+                            JOIN d_age ON
+                            d_age.age_id = res_party_age.age_id
+                            ORDER BY d_parties.party_id ASC, d_age.age_id ASC""")
+    for row in results:
+        name, votes_sum, districtName = row
+
+        if districtName not in districts:
+            districts.append(districtName)
+
+        if dictionary is None:
+            dictionary = {name:[votes_sum]}
+            continue
+
+        if name in dictionary:
+            dictionary[name].append(votes_sum)
+        else:
+            dictionary[name] = [votes_sum]
+
+    return dict(votes=dictionary, districts=districts)
+
 	
 def user():
     """
