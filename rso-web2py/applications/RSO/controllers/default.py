@@ -20,6 +20,15 @@ def index():
     response.flash = T("Hello World")
     return dict(message=T('Welcome to web2py!'))
 
+def getFrequency():
+    
+    db = getDbConnection()
+    result = db.executesql("""SELECT SUM(votes_sum) FROM res_party_candidates""")
+    total = 500.0
+    res = 100*result[0][0]/total
+    
+    return res
+
 def candidates():
     dictionary = None
     
