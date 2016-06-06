@@ -98,17 +98,18 @@ import java.util.logging.SimpleFormatter;
                 mongoDB = new MongoHandler(stats);
                 postDB = new PostgresHandler(stats);
                 postDB.getDictionaries();
-                mongoDB.getAllData();
-                postDB.insertStats();
+                /*mongoDB.getAllData();
+                postDB.insertStats();*/
 
-                /*int count = 0;
-                while(count < 10) {
-                    mongoDB.clear();
+                int count = 0;
+                while(count < 100) {
                     mongoDB.getAllData();
                     postDB.insertStats();
+                    mongoDB.clear();
+                    System.gc();
                     Thread.sleep(10000);
                     count++;
-                }*/
+                }
 
                 //mongoDB.getResults();
                 //mongoDB.insertSome();
