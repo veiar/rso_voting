@@ -203,6 +203,34 @@ def getAgePercentageData():
 
     return dict(votes=dictionary, districts=districts)
 
+def getEducationPercentageData():
+    dictionary = None
+    districts = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_education.votes_sum,d_education.education_type
+                            FROM d_parties JOIN res_party_education ON
+                            d_parties.party_id = res_party_education.party_id
+                            JOIN d_education ON
+                            d_education.education_id = res_party_education.education_id
+                            ORDER BY d_parties.party_id ASC, d_education.education_id ASC""")
+    for row in results:
+        name, votes_sum, districtName = row
+
+        if districtName not in districts:
+            districts.append(districtName)
+
+        if dictionary is None:
+            dictionary = {name:[votes_sum]}
+            continue
+
+        if name in dictionary:
+            dictionary[name].append(votes_sum)
+        else:
+            dictionary[name] = [votes_sum]
+
+    return dict(votes=dictionary, districts=districts)
+
+
 	
 def user():
     """
