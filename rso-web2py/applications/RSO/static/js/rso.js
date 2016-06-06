@@ -232,6 +232,11 @@ function removeCurrentChart(){
 
 function showPartyBlock()
 {
+    var partyBlock = document.getElementById("partyBlock");
+    while (partyBlock.firstChild) {
+    partyBlock.removeChild(partyBlock.firstChild);
+    }
+    
     $('#partyPanel').show();
     $.ajax({
         url: "/RSO/default/getPartyList.json",
@@ -255,7 +260,7 @@ function addPartyBlock(element, index){
     div.setAttribute("class", "btn-group");
     div.setAttribute("style", "width: 100%"); 
     var btn = document.createElement("BUTTON");
-    btn.setAttribute("class", "btn btn-info");   
+    btn.setAttribute("class", "btn btn-danger");   
     btn.setAttribute("style", "width: inherit");
     var text = document.createTextNode(element);
     
@@ -308,7 +313,7 @@ function addSexBlock(element, index){
     div.setAttribute("class", "btn-group");
     div.setAttribute("style", "width: 100%"); 
     var btn = document.createElement("BUTTON");
-    btn.setAttribute("class", "btn btn-info");   
+    btn.setAttribute("class", "btn btn-danger");   
     btn.setAttribute("style", "width: inherit");
     var text = document.createTextNode(element);
     
