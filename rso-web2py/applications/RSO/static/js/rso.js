@@ -7,6 +7,7 @@ function init(){
     
     $('.charts').show();
     $('#candidates').hide();
+    $('#chooseParameterMessage').hide();
     hidePartyBlock();
     hideSexBlock();
     removeCurrentChart();
@@ -79,7 +80,7 @@ function getEducation() {
 }
 
 function getSex(item) {
-    $('.col-md-9').css('width','75%');
+    
     removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getSexPercentageData.json",
@@ -105,6 +106,7 @@ function getCandidatesFromParty(item){
 
 function getSexList() {
     init();
+    $('.col-md-9').css('width','75%');
     showSexBlock();
 }
 
@@ -226,12 +228,14 @@ function removeCurrentChart(){
 
 function showPartyBlock()
 {
+    
+    
     var partyBlock = document.getElementById("partyBlock");
     while (partyBlock.firstChild) {
     partyBlock.removeChild(partyBlock.firstChild);
     }
     
-    $('#partyPanel').show();
+    
     $.ajax({
         url: "/RSO/default/getPartyList.json",
         success: function(data) {
@@ -241,7 +245,10 @@ function showPartyBlock()
                 {
                     addPartyBlock(data.names[i], data.ids[i]);
                 }
-            }        
+            }
+            
+            $('#partyPanel').fadeIn();
+            $('#chooseParameterMessage').html("Proszę wybrać partię").show();
         },
         error: function(data) {}
 })
@@ -260,6 +267,7 @@ function addPartyBlock(element, index){
     
     btn.appendChild(text);
     btn.addEventListener('click', function(){
+        $('#chooseParameterMessage').hide();
         getCandidatesFromParty(index);
     });
 
@@ -283,7 +291,7 @@ function hidePartyBlock(){
 //****** BLOCK WITH SEX LIST ******
 function showSexBlock()
 {
-    $('#sexPanel').show();
+    
     $.ajax({
         url: "/RSO/default/getSexList.json",
         success: function(data) {
@@ -293,7 +301,10 @@ function showSexBlock()
                 {
                     addSexBlock(data.names[i], data.ids[i]);
                 }
-            }        
+            }
+            
+            $('#sexPanel').fadeIn();
+            $('#chooseParameterMessage').html("Proszę wybrać płeć").show();
         },
         error: function(data) {}
 })
@@ -312,6 +323,7 @@ function addSexBlock(element, index){
     
     btn.appendChild(text);
     btn.addEventListener('click', function(){
+        $('#chooseParameterMessage').hide();
         getSex(index);
     });
 
