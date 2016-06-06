@@ -10,11 +10,11 @@ function getFrequency() {
     hideSexBlock();
     removeCurrentChart();
     $.ajax({
-        url: "/RSO/default/getPartyPercentageData.json",
+        url: "/RSO/default/getFrequency.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showPieChart([data, 100 - data], ["Głosujących", "Niegłosujących"]);
         },
-        error: function(data) {}
+        error: function(data) {debugger}
     })
 }
 
@@ -27,7 +27,7 @@ function getPartyPercentage() {
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showPieChart(data.votes, data.labels);
         },
         error: function(data) {}
     })
