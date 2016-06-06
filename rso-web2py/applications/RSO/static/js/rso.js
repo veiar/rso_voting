@@ -72,7 +72,7 @@ function getEducation() {
 }
 
 function getSex(item) {
-    init();
+    removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getSexPercentageData.json",
         data: {sexId:item},
