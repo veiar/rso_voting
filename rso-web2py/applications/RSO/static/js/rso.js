@@ -14,6 +14,7 @@ function init(){
 
 function getFrequency() {
     init();
+    $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getFrequency.json",
         success: function(data) {
@@ -25,6 +26,7 @@ function getFrequency() {
 
 function getPartyPercentage() {
     init();
+    $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
@@ -36,6 +38,7 @@ function getPartyPercentage() {
 
 function getConstituencies() {
     init();
+    $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getConstituenciesPercentageData.json",
         success: function(data) {
@@ -47,11 +50,13 @@ function getConstituencies() {
 
 function getCandidates() {
     init();
+    $('.col-md-9').css('width','75%');
     showPartyBlock();
 }
 
 function getAge() {
     init();
+    $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getAgePercentageData.json",
         success: function(data) {
@@ -63,6 +68,7 @@ function getAge() {
 
 function getEducation() {
     init();
+    $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getEducationPercentageData.json",
         success: function(data) {
@@ -73,6 +79,7 @@ function getEducation() {
 }
 
 function getSex(item) {
+    $('.col-md-9').css('width','75%');
     removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getSexPercentageData.json",
