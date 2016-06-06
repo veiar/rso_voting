@@ -61,12 +61,22 @@
           {{=response.logo or ''}}
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
-          <ul class="nav navbar-nav navbar-right">
-            {{='auth' in globals() and auth.navbar('Welcome',mode='dropdown') or ''}}
-          </ul>
-          {{if response.menu:}}
-          {{=MENU(response.menu, _class='nav navbar-nav',li_class='dropdown',ul_class='dropdown-menu')}}
-          {{pass}}
+          <ul class="nav navbar-nav navbar-left">            
+          <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Wyniki</a>
+            <ul class="dropdown-menu">
+                <li><a href="#" onclick="getFrequency()">Frekwencja</a></li>
+                <li><a href="#" onclick ="getPartyPercentage()">Partie</a></li>
+                <li><a href="#" onclick="getConstituencies()">Okręgi</a></li>
+                <li><a href="#" onclick ="getCandidates()">Kandydaci</a></li>
+                <li><a href="#">Przedziały wiekowe</a></li>
+                <li><a href="#">Wykształcenie</a></li>
+                <li><a href="#" onclick = "getSexList()">Płeć</a></li>
+              </ul>
+           </li>
+           <li class="web2py-menu-last">
+              <a href="#">Kandydaci</a></li>   
+           </ul>
         </div>
       </div>
     </nav>
