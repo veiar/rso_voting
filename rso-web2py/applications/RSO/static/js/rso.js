@@ -4,6 +4,8 @@ $(document).ready(function() {
 });
 
 function getFrequency() {
+    $('.charts').show();
+    $('#candidates').hide();
     hidePartyBlock();
     hideSexBlock();
     removeCurrentChart();
@@ -17,6 +19,8 @@ function getFrequency() {
 }
 
 function getPartyPercentage() {
+    $('.charts').show();
+    $('#candidates').hide();
     hideSexBlock();
     hidePartyBlock();
     removeCurrentChart();
@@ -30,6 +34,8 @@ function getPartyPercentage() {
 }
 
 function getConstituencies() {
+    $('.charts').show();
+    $('#candidates').hide();
     hideSexBlock();
     removeCurrentChart();
     $.ajax({
@@ -42,6 +48,8 @@ function getConstituencies() {
 }
 
 function getCandidates() {
+    $('.charts').show();
+    $('#candidates').hide();
     removeCurrentChart();
     hideSexBlock();
     showPartyBlock();
@@ -86,6 +94,8 @@ function getEducation() {
 
 
 function getSexList() {
+    $('.charts').show();
+    $('#candidates').hide();
     removeCurrentChart();
     hideSexBlock();
     hidePartyBlock();
@@ -322,4 +332,35 @@ function clearSexBlock(){
 function hideSexBlock(){
     clearSexBlock();
     $('#sexPanel').hide();
+}
+
+function showCandidatesPanel(){
+    $('.charts').hide();
+    $('#candidates').show();
+    $.ajax({
+        url: "/RSO/default/candidates.json",
+        success: function(data) {
+            
+            var html = "<ul>";
+            
+           $.each(Object.keys(data), function(partyIndex, partyName) {
+               
+               html += "<li>" + partyName + "<ol>";
+               
+               $.each(data[partyName], function(candidateIndex, candidateName){
+                   html += "<li>";
+                   html += candidateName;
+                   html += "</li>";
+               })
+               html += "</li></ol>";
+           });
+            
+            html += "</ul>";
+            
+            $('#candidates').html(html);
+        },
+        error: function(data) {
+            debugger;
+        }
+    })
 }
