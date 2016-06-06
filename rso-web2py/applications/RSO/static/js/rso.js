@@ -1,9 +1,10 @@
 $(document).ready(function() {
-    hidePartyBlock();
-    hideSexBlock();
+    showCandidatesPanel();
+   
 });
 
 function init(){
+    
     $('.charts').show();
     $('#candidates').hide();
     hidePartyBlock();
