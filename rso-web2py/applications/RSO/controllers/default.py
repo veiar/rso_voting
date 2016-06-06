@@ -17,8 +17,17 @@ def index():
     if you need a simple wiki simply replace the two lines below with:
     return auth.wiki()
     """
-    response.flash = T("Hello World")
-    return dict(message=T('Welcome to web2py!'))
+    
+    return dict(message=T('RSO'))
+
+def getFrequency():
+    
+    db = getDbConnection()
+    result = db.executesql("""SELECT SUM(votes_sum) FROM res_party_candidates""")
+    total = 500.0
+    res = 100*result[0][0]/total
+    
+    return res
 
 def candidates():
     dictionary = None
@@ -166,6 +175,61 @@ def getConstituenciesPercentageData():
             dictionary[name] = [votes_sum]
 
     return dict(votes=dictionary, districts=districts)
+
+def getAgePercentageData():
+    dictionary = None
+    districts = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_age.votes_sum,d_age.age_group
+                            FROM d_parties JOIN res_party_age ON
+                            d_parties.party_id = res_party_age.party_id
+                            JOIN d_age ON
+                            d_age.age_id = res_party_age.age_id
+                            ORDER BY d_parties.party_id ASC, d_age.age_id ASC""")
+    for row in results:
+        name, votes_sum, districtName = row
+
+        if districtName not in districts:
+            districts.append(districtName)
+
+        if dictionary is None:
+            dictionary = {name:[votes_sum]}
+            continue
+
+        if name in dictionary:
+            dictionary[name].append(votes_sum)
+        else:
+            dictionary[name] = [votes_sum]
+
+    return dict(votes=dictionary, districts=districts)
+
+def getEducationPercentageData():
+    dictionary = None
+    districts = []
+    db = getDbConnection()
+    results = db.executesql("""SELECT d_parties.name, res_party_education.votes_sum,d_education.education_type
+                            FROM d_parties JOIN res_party_education ON
+                            d_parties.party_id = res_party_education.party_id
+                            JOIN d_education ON
+                            d_education.education_id = res_party_education.education_id
+                            ORDER BY d_parties.party_id ASC, d_education.education_id ASC""")
+    for row in results:
+        name, votes_sum, districtName = row
+
+        if districtName not in districts:
+            districts.append(districtName)
+
+        if dictionary is None:
+            dictionary = {name:[votes_sum]}
+            continue
+
+        if name in dictionary:
+            dictionary[name].append(votes_sum)
+        else:
+            dictionary[name] = [votes_sum]
+
+    return dict(votes=dictionary, districts=districts)
+
 
 	
 def user():

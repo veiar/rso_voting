@@ -3,35 +3,38 @@ $(document).ready(function() {
     hideSexBlock();
 });
 
-function getFrequency() {
+function init(){
+    $('.charts').show();
+    $('#candidates').hide();
     hidePartyBlock();
     hideSexBlock();
     removeCurrentChart();
+}
+
+function getFrequency() {
+    init();
     $.ajax({
-        url: "/RSO/default/getPartyPercentageData.json",
+        url: "/RSO/default/getFrequency.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showPieChart([data, 100 - data], ["Głosujących", "Niegłosujących"]);
         },
-        error: function(data) {}
+        error: function(data) {debugger}
     })
 }
 
 function getPartyPercentage() {
-    hideSexBlock();
-    hidePartyBlock();
-    removeCurrentChart();
+    init();
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showPieChart(data.votes, data.labels);
         },
         error: function(data) {}
     })
 }
 
 function getConstituencies() {
-    hideSexBlock();
-    removeCurrentChart();
+    init();
     $.ajax({
         url: "/RSO/default/getConstituenciesPercentageData.json",
         success: function(data) {
@@ -42,54 +45,30 @@ function getConstituencies() {
 }
 
 function getCandidates() {
-    removeCurrentChart();
-    hideSexBlock();
+    init();
     showPartyBlock();
 }
 
-function getCandidatesFromParty(item){
-    hideSexBlock();
-    removeCurrentChart();
-    $.ajax({
-        url: "/RSO/default/getCandidatePercentageData.json",
-        data: {partyId:item},
-        success: function(data) {       
-            showPieChart(data.votes, data.labels)
-        },
-        error: function(data) {debugger}
-})
-}
-
 function getAge() {
-    hideSexBlock();
-    removeCurrentChart();
+    init();
     $.ajax({
-        url: "/RSO/default/getPartyPercentageData.json",
+        url: "/RSO/default/getAgePercentageData.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
     })
 }
 
 function getEducation() {
-    hideSexBlock();
-    removeCurrentChart();
+    init();
     $.ajax({
-        url: "/RSO/default/getPartyPercentageData.json",
+        url: "/RSO/default/getEducationPercentageData.json",
         success: function(data) {
-            showPieChart(data.votes, data.labels)
+            showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
     })
-}
-
-
-function getSexList() {
-    removeCurrentChart();
-    hideSexBlock();
-    hidePartyBlock();
-    showSexBlock();
 }
 
 function getSex(item) {
@@ -102,6 +81,23 @@ function getSex(item) {
         },
         error: function(data) {debugger}
     })
+}
+
+function getCandidatesFromParty(item){
+     removeCurrentChart();
+    $.ajax({
+        url: "/RSO/default/getCandidatePercentageData.json",
+        data: {partyId:item},
+        success: function(data) {       
+            showPieChart(data.votes, data.labels)
+        },
+        error: function(data) {debugger}
+})
+}
+
+function getSexList() {
+    init();
+    showSexBlock();
 }
 
 function showColumnChart(data, labels)
@@ -222,6 +218,11 @@ function removeCurrentChart(){
 
 function showPartyBlock()
 {
+    var partyBlock = document.getElementById("partyBlock");
+    while (partyBlock.firstChild) {
+    partyBlock.removeChild(partyBlock.firstChild);
+    }
+    
     $('#partyPanel').show();
     $.ajax({
         url: "/RSO/default/getPartyList.json",
@@ -245,12 +246,11 @@ function addPartyBlock(element, index){
     div.setAttribute("class", "btn-group");
     div.setAttribute("style", "width: 100%"); 
     var btn = document.createElement("BUTTON");
-    btn.setAttribute("class", "btn btn-info");   
+    btn.setAttribute("class", "btn btn-danger");   
     btn.setAttribute("style", "width: inherit");
     var text = document.createTextNode(element);
     
     btn.appendChild(text);
-    //btn.setAttribute("onclick", getCandidatesFromParty
     btn.addEventListener('click', function(){
         getCandidatesFromParty(index);
     });
@@ -298,7 +298,7 @@ function addSexBlock(element, index){
     div.setAttribute("class", "btn-group");
     div.setAttribute("style", "width: 100%"); 
     var btn = document.createElement("BUTTON");
-    btn.setAttribute("class", "btn btn-info");   
+    btn.setAttribute("class", "btn btn-danger");   
     btn.setAttribute("style", "width: inherit");
     var text = document.createTextNode(element);
     
@@ -322,4 +322,35 @@ function clearSexBlock(){
 function hideSexBlock(){
     clearSexBlock();
     $('#sexPanel').hide();
+}
+
+function showCandidatesPanel(){
+    $('.charts').hide();
+    $('#candidates').show();
+    $.ajax({
+        url: "/RSO/default/candidates.json",
+        success: function(data) {
+            
+            var html = "<ul>";
+            
+           $.each(Object.keys(data), function(partyIndex, partyName) {
+               
+               html += "<li>" + partyName + "<ol>";
+               
+               $.each(data[partyName], function(candidateIndex, candidateName){
+                   html += "<li>";
+                   html += candidateName;
+                   html += "</li>";
+               })
+               html += "</li></ol>";
+           });
+            
+            html += "</ul>";
+            
+            $('#candidates').html(html);
+        },
+        error: function(data) {
+            debugger;
+        }
+    })
 }

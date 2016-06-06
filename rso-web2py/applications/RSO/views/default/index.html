@@ -14,6 +14,7 @@
       </div>
     </header>
 {{end}}
+<div class="charts">
 
 <div class="canvas_holder">
     <canvas id="columnChart" width="960px" height="340px" style="width: 960px; height: 340px; display: none;"></canvas>   
@@ -23,7 +24,7 @@
 
 
 {{block right_sidebar}}
-<div id="partyPanel" class="panel panel-info">
+<div id="partyPanel" class="panel panel-danger">
   <div class="panel-heading"><h3 class="panel-title">
       {{=T("Wybierz partie")}}
     </h3></div>
@@ -31,7 +32,7 @@
   </div>
 </div>
 
-<div id="sexPanel" class="panel panel-info">
+<div id="sexPanel" class="panel panel-danger">
   <div class="panel-heading"><h3 class="panel-title">
       {{=T("Wybierz płeć")}}
     </h3></div>
@@ -40,3 +41,7 @@
 </div>
 
 {{end}}
+</div>
+<div id="candidates">
+  
+</div>
