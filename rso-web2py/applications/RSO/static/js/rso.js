@@ -346,16 +346,17 @@ function hideSexBlock(){
 
 function showCandidatesPanel(){
     $('.charts').hide();
+    $('.col-md-9').css('width','100%');
     $('#candidates').show();
     $.ajax({
         url: "/RSO/default/candidates.json",
         success: function(data) {
             
-            var html = "<ul>";
+            var html = "<ul class=\"list-group\">";
             
            $.each(Object.keys(data), function(partyIndex, partyName) {
                
-               html += "<li>" + partyName + "<ol>";
+               html += "<li  class=\"list-group-item\">" + partyName + "<ol>";
                
                $.each(data[partyName], function(candidateIndex, candidateName){
                    html += "<li>";
