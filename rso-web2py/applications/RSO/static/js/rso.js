@@ -84,7 +84,7 @@ function getSex(item) {
 }
 
 function getCandidatesFromParty(item){
-    init();
+     removeCurrentChart();
     $.ajax({
         url: "/RSO/default/getCandidatePercentageData.json",
         data: {partyId:item},
