@@ -36,8 +36,8 @@ object TwoPhaseCommitActor {
 class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) extends Actor {
 
   val conf = ConfigFactory.load()
-  val dbHostsConf = conf.getConfigList("db-nodes") map (_.getString("url"))
-  val minDbsCount = conf.getInt("min-dbs-count")
+  val dbHostsConf = sys.env("MONGO_HOSTS").split(",").map(_ + ":8881")
+  val minDbsCount = sys.env("REDUNDANCY").toInt
 
   val logger = Logger(LoggerFactory.getLogger(classOf[TwoPhaseCommitActor].getName))
 
@@ -109,13 +109,13 @@ class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) exten
       potentialDbsIndicies = potentialDbsIndicies.filterNot(dbHostsIndicies.contains(_))
 
       val commitActors = dbHostsIndicies.map((dbHostIdx: Int) => {
-        dbHostIdx -> context.actorOf(Props(new CommitActor(dbHostsConf.get(dbHostIdx), documents, txId)))
+        dbHostIdx -> context.actorOf(Props(new CommitActor(dbHostsConf(dbHostIdx), documents, txId)))
       })
 
       val responsesFutures = Future.sequence(
         commitActors map {
           case (hostIdx: Int, actor: ActorRef) =>
-            val url = dbHostsConf.get(hostIdx)
+            val url = dbHostsConf(hostIdx)
             actor ? Vote recover {
               case e: TimeoutException => Messages.UnknownError
             } map { response => actor -> response }
