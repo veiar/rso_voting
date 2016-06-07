@@ -1,6 +1,6 @@
 package com.mac.rso
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.actor.Status.Success
 import akka.io.Tcp
 import akka.util.ByteString
@@ -16,6 +16,7 @@ import shapeless.syntax.typeable._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Failure
 import scala.util.parsing.json.{JSON, JSONObject}
 
 /**
@@ -32,17 +33,17 @@ class DbAgentActor extends Actor {
   var documentsToSave: Option[List[String]] = None
   var txId: Option[String] = None
 
-  val logger = Logger(LoggerFactory.getLogger(classOf[DbAgentActor].getName))
+  val log = Logger(LoggerFactory.getLogger(classOf[DbAgentActor].getName))
 
   def receive = {
     case Received(data) =>
-      logger.debug("data received")
+      log.info("data received")
       JSON.parseFull(data.utf8String).get.cast[Map[String, Any]] match {
         case Some(obj) =>
           obj.get("command") match {
             case Some(Messages2PC.VOTE) =>
               val replyTo = sender()
-              logger.debug("vote command received, replying voteOk")
+              log.info("vote command received, replying voteOk")
               documentsToSave = obj.get("objects") match {
                 case Some(s: List[String]) => Some(s)
               }
@@ -55,21 +56,30 @@ class DbAgentActor extends Actor {
               respond(replyTo, Messages2PC.VOTE_OK)
             case Some(Messages2PC.COMMIT) =>
               val replyTo = sender()
-              logger.debug("commit received")
-              dbsave() onSuccess {
-                case _ =>
-                  logger.debug("commit successful")
+              log.info("commit received")
+              dbsave() onComplete {
+                case scala.util.Success(_) =>
+                  log.info("commit successful")
                   respond(replyTo, Messages2PC.ACK)
+                  context stop self
+                case Failure(e) =>
+                  log.error("error during dbsave", e)
+                  context stop self
               }
 
             case Some(Messages2PC.ROLLBACK) =>
               val replyTo = sender()
-              logger.debug("rollback received")
-              rollback() onSuccess {
-                case _ =>
-                  logger.debug("rollback successful")
+              log.info("rollback received")
+              rollback() onComplete {
+                case scala.util.Success(_) =>
+                  log.info("rollback successful")
                   respond(replyTo, Messages2PC.ACK)
+                  context stop self
+                case Failure(e) =>
+                  log.error("error during rollback", e)
+                  context stop self
               }
+              
             case _ => throw new Exception("unknown command")
           }
 
@@ -79,7 +89,7 @@ class DbAgentActor extends Actor {
     case PeerClosed =>
       context stop self
     case _ =>
-      logger.debug("unknown message")
+      log.info("unknown message")
   }
 
   def respond(replyTo: ActorRef, response: String): Unit = {

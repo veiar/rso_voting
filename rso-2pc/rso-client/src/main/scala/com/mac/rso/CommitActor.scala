@@ -2,7 +2,7 @@ package com.mac.rso
 
 import java.net.InetSocketAddress
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
 import com.mac.rso.CommitActor.Messages._
@@ -49,7 +49,7 @@ class CommitActor(dbHostUrl: String, documents: List[Map[String, Any]], txId: St
 
   implicit val jsonFormats = DefaultFormats
 
-  val logger = Logger(LoggerFactory.getLogger(classOf[CommitActor].getName))
+  val log = Logger(LoggerFactory.getLogger(classOf[CommitActor].getName))
 
   val hostname = dbHostUrl.split(":")(0)
   val port = dbHostUrl.split(":")(1).toInt
@@ -63,7 +63,7 @@ class CommitActor(dbHostUrl: String, documents: List[Map[String, Any]], txId: St
       IO(Tcp) ! Connect(remote)
 
     case CommandFailed(_: Connect) =>
-      logger.debug("connection failed")
+      log.info("connection failed")
       listener.get ! VoteError
       context stop self
 
@@ -84,17 +84,17 @@ class CommitActor(dbHostUrl: String, documents: List[Map[String, Any]], txId: St
             case Some(response) =>
               response.get("command") match {
                 case Some(Messages2PC.VOTE_OK) =>
-                  logger.debug("received VoteOk!!")
+                  log.info("received VoteOk!!")
                   listener.get ! VoteOk
                 case Some(Messages2PC.ACK) =>
-                  logger.debug("received ack!!")
+                  log.info("received ack!!")
                   listener.get ! Ack
-                case _ =>
-                  logger.debug("unknown response")
+                case a: Any =>
+                  log.error("unknown response:" + a)
                   listener.get ! UnknownError
               }
-            case _ =>
-              logger.debug("unknown response")
+            case a: Any =>
+              log.error("unknown response: " + a)
               listener.get ! UnknownError
           }
 

@@ -2,23 +2,19 @@ package com.mac.rso
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.{Actor, ActorRef, Props}
-import akka.pattern.ask
+import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import com.mac.rso.TwoPhaseCommitActor.Result
-import com.typesafe.config.ConfigFactory
-import org.mongodb.scala.bson.collection.immutable.Document
-import akka.pattern.pipe
 import com.mac.rso.CommitActor.Messages
 import com.mac.rso.CommitActor.Messages._
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by mac on 17.04.16.
@@ -39,7 +35,7 @@ class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) exten
   val dbHostsConf = sys.env("MONGO_HOSTS").split(",").map(_ + ":8881")
   val minDbsCount = sys.env("REDUNDANCY").toInt
 
-  val logger = Logger(LoggerFactory.getLogger(classOf[TwoPhaseCommitActor].getName))
+  val log = Logger(LoggerFactory.getLogger(classOf[TwoPhaseCommitActor].getName))
 
   protected implicit val timeout = new Timeout(2 seconds)
 
@@ -52,13 +48,17 @@ class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) exten
           TwoPhaseCommitActor.Ok
         } catch {
           case e: Exception =>
-            logger.error("commit error, rolling back", e)
+            log.error("commit error, rolling back", e)
             rollback(actorsCommiting)
             TwoPhaseCommitActor.Error
+        } finally {
+          actorsCommiting foreach (_ ! PoisonPill)
+          context stop self
         }
       } recover {
         case e: Exception =>
-          logger.error("unknown error", e)
+          log.error("unknown error", e)
+          context stop self
           TwoPhaseCommitActor.Error
       } pipeTo sender()
   }
@@ -66,12 +66,15 @@ class TwoPhaseCommitActor(txId: String, documents: List[Map[String, Any]]) exten
   def commitTransaction(actorsCommiting: List[ActorRef]) = {
     val responsesFutures = Future.sequence(actorsCommiting map {
       _ ? Commit recover {
-        case e: Exception => Messages.UnknownError
+        case e: Exception =>
+          log.error("Error quering CommitActor", e)
+          Messages.UnknownError
       }
     })
     val commitResponses = Await.result(responsesFutures, Duration.Inf)
 
     if (!commitResponses.forall(_ == Ack)) {
+      commitResponses foreach (response => log.info("RESPONSE: " + response))
       throw new Exception("Commit failed")
     }
   }
