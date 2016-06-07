@@ -30,7 +30,7 @@ INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'PO');
 INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'PiS');
 INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'Petru');
 INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'SLD');
-INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'Kukiz <3');
+INSERT INTO d_parties VALUES (nextval('seq_d_parties'), 'Kukiz');
 
 
 --
@@ -159,6 +159,6 @@ INSERT INTO d_education VALUES (nextval('seq_d_education'), 'WYŻSZE');
 -- Data for Name: d_sex; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO d_sex VALUES (1, 'K');
-INSERT INTO d_sex VALUES (2, 'M');
+INSERT INTO d_sex VALUES (1, 'KOBIETY');
+INSERT INTO d_sex VALUES (2, 'MĘŻCZYZNI');
 
