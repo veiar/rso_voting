@@ -1,5 +1,6 @@
 package RsoAggregator;
 
+import DBHandler.ConnectionHandler;
 import DBHandler.MongoHandler;
 import DBHandler.PostgresHandler;
 
@@ -57,6 +58,36 @@ import java.util.logging.SimpleFormatter;
             }catch(Exception e){
                 System.out.println(e.getClass() + " : " + e.getMessage() );
             }*/
+            boolean master = false;
+            try{
+                Integer arg = Integer.parseInt(args[0]);
+                System.out.println(arg);
+                if(arg == 0){
+                    master = false;
+                }
+                else{
+                    master = true;
+                }
+            }catch (Exception e){
+                System.err.println("No parameters! Bye!");
+
+                //System.exit(2);
+            }
+
+            final boolean isMaster = master;
+            if(isMaster) {
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ConnectionHandler connectionHandler = new ConnectionHandler(isMaster);
+                    }
+                });
+                t.start();
+            }
+            else{
+                ConnectionHandler connectionHandler = new ConnectionHandler(isMaster);
+            }
+
 
 
             MongoHandler mongoDB = null;
@@ -98,17 +129,18 @@ import java.util.logging.SimpleFormatter;
                 mongoDB = new MongoHandler(stats);
                 postDB = new PostgresHandler(stats);
                 postDB.getDictionaries();
-                mongoDB.getAllData();
-                postDB.insertStats();
+                /*mongoDB.getAllData();
+                postDB.insertStats();*/
 
-                /*int count = 0;
-                while(count < 10) {
-                    mongoDB.clear();
+                int count = 0;
+                while(count < 100) {
                     mongoDB.getAllData();
                     postDB.insertStats();
+                    mongoDB.clear();
+                    System.gc();
                     Thread.sleep(10000);
                     count++;
-                }*/
+                }
 
                 //mongoDB.getResults();
                 //mongoDB.insertSome();

@@ -11,9 +11,12 @@ import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -24,20 +27,12 @@ import static RsoAggregator.RsoAggregator.logger;
 public class MongoHandler {
     private static String m_userName = "pm";
     private static String m_password = "pass123";
-    private static String m_dbName = "dbNew";
+    private static String m_dbName = "test";//"dbNew";
     private static String m_dbName2 = "dbNew2";
     private static String m_port = "27017";
-    private static String m_dbCollection = "testColl";
+    private static String m_dbCollection = "votes";//"testColl";
     private static String m_dbCollection2 = "testColl2";
-    // TODO wypieprzyc
-    private String user, user2;// = "pm";
-    private char[] pass, pass2;// = "pass123".toCharArray();
-    private String dbName, dbName2;// = "testDB";
-    private String dbAddress, dbAddress2;
-    private String dbCollection, dbCollection2;
-    private MongoClient mongoClient, mongoClient2;
-    private MongoDatabase mongoDB, mongoDB2;
-    // TODO end
+
     private Statistics stats;
     private Map<String, VoteInfo> mapAllData;
     private List<MongoInstance> mapMongoInstances;
@@ -78,6 +73,7 @@ public class MongoHandler {
         List<Map<String, VoteInfo>> aggregList = new ArrayList<>();
         for(int i=0; i<mapMongoInstances.size(); ++i){
             System.out.println("Getting data from " + i + ". Mongo instance... " + new GregorianCalendar().getTime());
+            logger.log(Level.INFO, "Getting data from " + i + ". Mongo instance... " + new GregorianCalendar().getTime());
             MongoInstance mi = mapMongoInstances.get(i);
             MongoCollection coll = mi.getMongoDB().getCollection(mi.getDbCollection());
             final Map<String, VoteInfo> map = new HashMap<>();
@@ -134,7 +130,6 @@ public class MongoHandler {
                 logger.log(Level.SEVERE, "Internal error!");
             }
         }
-
 /*        MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
         MongoCredential cred2 = MongoCredential.createCredential(user2, dbName2, pass2);
         //this.mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
@@ -178,9 +173,9 @@ public class MongoHandler {
         public boolean setConnection(){
             try {
                 MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
-
-                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred),
-                        MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s
+                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s);
+                //this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred),
+                //        MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s
                 this.mongoDB = mongoClient.getDatabase(dbName);
                 Document doc = mongoDB.runCommand(new BasicDBObject("ping", 1));
                 logger.log(Level.INFO, "Connected to MongoDB! -host: " + dbAddress + " -user: " + user
@@ -217,7 +212,42 @@ public class MongoHandler {
     }
 
     private void getProperties(){
-        Map<String, String> env = System.getenv();
+    try {
+        Scanner scanner = new Scanner(new File("/etc/hosts")).useDelimiter("\n");
+        int i = 0;
+            while (scanner.hasNext()){
+                String content = scanner.next();
+                System.out.println(content);
+                String[] tab = content.split("\t");
+                if(tab.length > 1){
+                    if(tab[1].equals("MONGO_HOSTS")){
+                        System.out.println("\tFound MONGO_HOST! " + tab[0]);
+                        i++;
+                        MongoInstance mi = new MongoInstance(
+                                m_userName,
+                                m_password.toCharArray(),
+                                m_dbName,
+                                tab[0] + ":" + m_port,
+                                m_dbCollection
+                        );
+                        mapMongoInstances.add(mi);
+                    }
+                }
+
+            }
+        if(i == 0){
+            System.err.println("No MONGO_HOSTS found in /etc/hosts! Bye!");
+            logger.log(Level.SEVERE, "No MONGO_HOSTS found in /etc/hosts! Bye!");
+            System.exit(2);
+        }
+
+    } catch (Exception e){
+        System.err.println("Exception while reading /etc/hosts! Bye!");
+        logger.log(Level.SEVERE, "Exception while reading /etc/hosts! Bye!");
+        System.exit(2);
+
+    }
+        /*Map<String, String> env = System.getenv();
         if(!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")){
             System.err.println("No environment variables set! Bye!");
             logger.log(Level.SEVERE, "No environment variables set! Bye!");
@@ -227,8 +257,8 @@ public class MongoHandler {
         String postgresAllHosts = env.get("POSTGRES_HOSTS");
         String[] mongoHosts = mongoAllHosts.split(",");
         String[] postgresHosts = postgresAllHosts.split(",");
-        boolean lol = false;
-        for(String t : mongoHosts){
+        boolean lol = false;*/
+        /*for(String t : mongoHosts){
             MongoInstance mi = new MongoInstance(
                     m_userName,
                     m_password.toCharArray(),
@@ -239,7 +269,16 @@ public class MongoHandler {
             lol = !lol;
             //mi.setConnection();
             mapMongoInstances.add(mi);  // moze uda sie pozniej polaczyc, wiec i tak dodajemy do mapy
-        }
+        }*/
+        /*MongoInstance mi = new MongoInstance(
+                m_userName,
+                m_password.toCharArray(),
+                "test",
+                "52.36.29.80" + ":" + m_port,
+                "testColl"
+        );
+        mapMongoInstances.add(mi);*/
+
 /*
         java.util.Properties properties = new Properties();
         properties.load(new FileInputStream("cfg/aggregatorMongo.cfg"));
@@ -280,18 +319,20 @@ public class MongoHandler {
        /* this.mongoClient.close();
         this.mongoClient2.close();*/
 
-        for(int i=0; i < mapMongoInstances.size(); ++i){
-            mapMongoInstances.get(0).mongoClient.close();
+        for(int i=0; i < mapMongoInstances.size(); ++i) {
+            if (mapMongoInstances.get(i).active) {
+                mapMongoInstances.get(i).mongoClient.close();
+            }
         }
     }
-
+/*
     public void test(Statistics stats){
         MongoCollection coll = mongoDB.getCollection(dbCollection);
         BasicDBObject c = new BasicDBObject();
         c.append("Gender", "K");
         System.out.println("Women: "+coll.count(c));
 
-/*
+
         BasicDBObject match = new BasicDBObject("$match", new BasicDBObject("Gender", "K") );
         BasicDBObject fields = new BasicDBObject("Education", 1);
         //fields.put("Education", 1);
@@ -310,7 +351,7 @@ public class MongoHandler {
                 //Object temp = document.get("Gender");
                 System.out.println(document);
             }
-        });*/
+        });
 
         BasicDBObject d = new BasicDBObject();
         d.append("Gender", "K");
@@ -331,9 +372,9 @@ public class MongoHandler {
 
         //insertSome();
 
-    }
+    }*/
 
-    public void getResults(){
+    /*public void getResults(){
         System.out.println("Getting and calculating results from Mongo started on " + new GregorianCalendar().getTime());
         getResPartyCandidates();
         getResPartyEducation();
@@ -341,8 +382,8 @@ public class MongoHandler {
         getResPartyConstituency();
         getResPartyAge();
         System.out.println("Getting and calculating results from Mongo ended on " + new GregorianCalendar().getTime());
-    }
-
+    }*/
+/*
     public void getResPartyAge(){
         MongoCollection collM = mongoDB.getCollection(dbCollection);
 
@@ -368,9 +409,9 @@ public class MongoHandler {
                 System.out.println(document);
             }
         });*/
-    }
+    //}
 
-
+/*
     private void getResPartyCandidates(){
         MongoCollection coll = mongoDB.getCollection(dbCollection);
         BasicDBObject groupFields = new BasicDBObject( "_id", "$Vote");
@@ -424,12 +465,12 @@ public class MongoHandler {
     }
 
 
-
+*/
     public void insertSome(){
         Random random = new Random();
         boolean gender = false, edu = true;
         ArrayList<Document> docList = new ArrayList<>();
-        for(int i = 0; i < 250000; ++i) {
+        for(int i = 0; i < 50; ++i) {
             int year = random.nextInt(99)+1;
             int month = random.nextInt(12)+1;
             int day = random.nextInt(31)+1;

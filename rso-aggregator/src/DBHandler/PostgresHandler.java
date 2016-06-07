@@ -2,6 +2,8 @@ package DBHandler;
 
 import RsoAggregator.Statistics;
 import org.javatuples.Pair;
+
+import java.io.File;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.Level;
@@ -14,7 +16,7 @@ public class PostgresHandler {
     public final static String D_AGE_TABLENAME = "d_age";
 
     private static String m_userName = "postgres";
-    private static String m_password = "123";
+    private static String m_password = "admin123";//"123";
     private static String m_dbName = "results";
     private static String m_dbName2 = "results2";   // TODO tylko do testow!
     private static String m_port = "5432";
@@ -117,6 +119,41 @@ public class PostgresHandler {
     }
 
     private void getProperties() {
+        try {
+            Scanner scanner = new Scanner(new File("/etc/hosts")).useDelimiter("\n");
+            int i = 0;
+            while (scanner.hasNext()){
+                String content = scanner.next();
+                System.out.println(content);
+                String[] tab = content.split("\t");
+                if(tab.length > 1){
+                    if(tab[1].equals("POSTGRES_HOSTS")){
+                        System.out.println("\tFound POSTGRES_HOST! " + tab[0]);
+                        i++;
+                        PostgresInstance pi = new PostgresInstance(
+                                m_userName,
+                                m_password,
+                                m_dbName,
+                                tab[0] + ":" + m_port
+                        );
+                        mapPostgresInstances.add(pi);
+                    }
+                }
+
+            }
+            if(i == 0){
+                System.err.println("No POSTGRES_HOSTS found in /etc/hosts! Bye!");
+                logger.log(Level.SEVERE, "No POSTGRES_HOSTS found in /etc/hosts! Bye!");
+                System.exit(2);
+            }
+
+        } catch (Exception e){
+            System.err.println("Exception while reading /etc/hosts! Bye!");
+            logger.log(Level.SEVERE, "Exception while reading /etc/hosts! Bye!");
+            System.exit(2);
+
+        }
+        /*
         Map<String, String> env = System.getenv();
         if (!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")) {
             System.err.println("No environment variables set! Bye!");
@@ -135,7 +172,7 @@ public class PostgresHandler {
             );
             lol = true;
             mapPostgresInstances.add(pi);
-        }
+        }*/
     }
 
     public void getDictionaries()
