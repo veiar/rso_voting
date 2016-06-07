@@ -7,17 +7,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Text.RegularExpressions;
+using Npgsql;
+using System.Data;
 
 namespace DataGenerator
 {
     public class VoteEntity
     {
         public string Pesel { get; set; }
-        public string Vote { get; set; }
-        public string VotingArea { get; set; }
-        public Gender Gender { get; set; }
-        public string Address { get; set; }
-        public string Education { get; set; }
+        public int Vote { get; set; }
+        public int Constituency { get; set; }
+        public int Gender { get; set; }
+        public int Education { get; set; }
     }
 
     public class VoteRepository
@@ -40,7 +41,7 @@ namespace DataGenerator
             return _votes.Single(p => p.Pesel == pesel);
         }
 
-        public IList<VoteEntity> GetByGender(Gender gender)
+        public IList<VoteEntity> GetByGender(int gender)
         {
             return _votes.Where(p => p.Gender == gender).ToList();
         }
@@ -52,10 +53,25 @@ namespace DataGenerator
         private VoteRepository _voteRepository = new VoteRepository();
         public IList<VoteEntity> GetRandomData(int numberOfVotes)
         {
+            List<int> vote = new List<int>();
+            List<int> constituencies = new List<int>();
+            List<int> gender = new List<int>();
+            List<int> education = new List<int>();
+
+            vote = GetDictionaryId("candidate_id", "d_candidates");
+            constituencies = GetDictionaryId("constituency_id", "d_constituencies");
+            gender = GetDictionaryId("sex_id", "d_sex");
+            education = GetDictionaryId("education_id", "d_education");
+
+            Random randId = new Random();
+
             IList<VoteEntity> votes = Builder<VoteEntity>.CreateListOfSize(numberOfVotes)
                 .All()
                     .With(p => p.Pesel = GetPesel())
-                    .With(c => c.Address = Faker.Address.StreetAddress() + ", " + Faker.Address.City())
+                    .With(v => v.Vote = vote[randId.Next(vote.Count)])
+                    .With(c => c.Constituency = constituencies[randId.Next(constituencies.Count)])
+                    .With(g => g.Gender = gender[randId.Next(gender.Count)])
+                    .With(c => c.Education = education[randId.Next(education.Count)])
                 .Build();
 
             _voteRepository.Votes = votes.ToList();
@@ -74,5 +90,22 @@ namespace DataGenerator
 
             return year + month + day + numGenerator.Next(10000, 99999).ToString();
         }
+
+        private List<int> GetDictionaryId(string colName, string tableName)
+        {
+            List<int> idList = new List<int>();
+            string dataBase = ConfigurationManager.ConnectionStrings["dataBaseConnectionString"].ConnectionString;
+            NpgsqlConnection conn = new NpgsqlConnection(dataBase);
+
+            conn.Open();
+            NpgsqlCommand command = new NpgsqlCommand(string.Format("SELECT {0} FROM {1}", colName, tableName), conn);
+            NpgsqlDataReader dr = command.ExecuteReader();
+            while (dr.Read())
+                idList.Add(int.Parse(dr[0].ToString()));
+            conn.Close();
+
+            return idList;
+        }
+
     }
 }

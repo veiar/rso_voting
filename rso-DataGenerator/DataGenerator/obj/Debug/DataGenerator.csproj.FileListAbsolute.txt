@@ -20,3 +20,16 @@ C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-da
 C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-dataGenerator\rso-DataGenerator\DataGenerator\bin\Debug\Newtonsoft.Json.xml
 C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-dataGenerator\rso-DataGenerator\DataGenerator\bin\Debug\de-DE\Faker.NET4.resources.dll
 C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-dataGenerator\rso-DataGenerator\DataGenerator\obj\Debug\DataGenerator.csprojResolveAssemblyReference.cache
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\DataGenerator.exe.config
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\obj\Debug\DataGenerator.exe
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\obj\Debug\DataGenerator.pdb
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\DataGenerator.exe
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\DataGenerator.pdb
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\Faker.NET4.dll
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\FizzWare.NBuilder.dll
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\Newtonsoft.Json.dll
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\Newtonsoft.Json.xml
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\de-DE\Faker.NET4.resources.dll
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\obj\Debug\DataGenerator.csprojResolveAssemblyReference.cache
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\Npgsql.dll
+C:\Users\ASUS\Documents\!!PW!!\03_EITI\semIII\RSO\projekt\repo\rso_voting\rso-DataGenerator\DataGenerator\bin\Debug\Npgsql.xml
