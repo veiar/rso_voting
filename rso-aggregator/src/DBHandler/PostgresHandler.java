@@ -14,7 +14,7 @@ public class PostgresHandler {
     public final static String D_CANDIDATES_TABLENAME = "d_candidates";
     public final static String[] D_AGE_COLS = {"age_id", "split_part(age_group, '-', 1), split_part(age_group, '-', 2)"};
     public final static String D_AGE_TABLENAME = "d_age";
-
+    private static String postgresAddress[] = {"52.40.243.126"};
     private static String m_userName = "postgres";
     private static String m_password = "admin123";//"123";
     private static String m_dbName = "results";
@@ -77,6 +77,21 @@ public class PostgresHandler {
         }
 
         private boolean isActive(){
+            Statement stmt = null;
+            try{
+                stmt = conn.createStatement();
+                String query = "select 1;";
+                stmt.executeQuery(query);
+                this.active = true;
+            } catch (Exception e){
+                this.active = false;
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    }catch (SQLException e1){
+                    }
+                }
+            }
             return this.active;
         }
 
@@ -120,7 +135,14 @@ public class PostgresHandler {
 
     private void getProperties() {
         try {
-            Scanner scanner = new Scanner(new File("/etc/hosts")).useDelimiter("\n");
+            PostgresInstance pi = new PostgresInstance(
+                    m_userName,
+                    m_password,
+                    m_dbName,
+                    postgresAddress[0] + ":" + m_port
+            );
+            mapPostgresInstances.add(pi);
+            /*Scanner scanner = new Scanner(new File("/etc/hosts")).useDelimiter("\n");
             int i = 0;
             while (scanner.hasNext()){
                 String content = scanner.next();
@@ -145,7 +167,7 @@ public class PostgresHandler {
                 System.err.println("No POSTGRES_HOSTS found in /etc/hosts! Bye!");
                 logger.log(Level.SEVERE, "No POSTGRES_HOSTS found in /etc/hosts! Bye!");
                 System.exit(2);
-            }
+            }*/
 
         } catch (Exception e){
             System.err.println("Exception while reading /etc/hosts! Bye!");

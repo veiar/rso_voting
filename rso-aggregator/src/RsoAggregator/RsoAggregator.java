@@ -58,7 +58,7 @@ import java.util.logging.SimpleFormatter;
             }catch(Exception e){
                 System.out.println(e.getClass() + " : " + e.getMessage() );
             }*/
-            boolean master = false;
+            /*boolean master = false;
             try{
                 Integer arg = Integer.parseInt(args[0]);
                 System.out.println(arg);
@@ -87,7 +87,7 @@ import java.util.logging.SimpleFormatter;
             else{
                 ConnectionHandler connectionHandler = new ConnectionHandler(isMaster);
             }
-
+*/
 
 
             MongoHandler mongoDB = null;
@@ -129,10 +129,10 @@ import java.util.logging.SimpleFormatter;
                 mongoDB = new MongoHandler(stats);
                 postDB = new PostgresHandler(stats);
                 postDB.getDictionaries();
-                /*mongoDB.getAllData();
-                postDB.insertStats();*/
+                mongoDB.getAllData();
+                postDB.insertStats();
 
-                int count = 0;
+                /*int count = 0;
                 while(count < 100) {
                     mongoDB.getAllData();
                     postDB.insertStats();
@@ -140,7 +140,7 @@ import java.util.logging.SimpleFormatter;
                     System.gc();
                     Thread.sleep(10000);
                     count++;
-                }
+                }*/
 
                 //mongoDB.getResults();
                 //mongoDB.insertSome();
