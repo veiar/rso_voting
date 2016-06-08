@@ -20,14 +20,15 @@ namespace DataGenerator
             
             string url = ConfigurationManager.ConnectionStrings["URL"].ConnectionString;
             int votesNumberPerPackage = int.Parse(ConfigurationManager.AppSettings["votesNumberPerPackage"]); 
-            int packageNumber = 1; //TODO
-            int interval = 0; //TODO
+
+            string dataBase = ConfigurationManager.ConnectionStrings["dataBaseConnectionString"].ConnectionString;
 
             var json = JsonConvert.SerializeObject(_voteRepository.GetRandomData(votesNumberPerPackage));
             Console.WriteLine(json);
 
-            Console.WriteLine(string.Format(" **Data generator for RSO_Voting Project 2016** \n ConnectionString: {0}, \n Number of votes per package: {1}, \n Number of packages: {2}, Interval: {3}.\n\n",
-                url, votesNumberPerPackage, packageNumber, interval));
+            Console.WriteLine(string.Format(" **Data generator for RSO_Voting Project 2016** \n ConnectionString: {0}, \n Number of votes per package: {1}.\n",
+                url, votesNumberPerPackage));
+            Console.WriteLine(string.Format(" Database ConnectionString: {0} \n\n",  dataBase));
 
             try
             {
