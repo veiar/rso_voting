@@ -38,54 +38,61 @@ class DbAgentActor extends Actor {
   def receive = {
     case Received(data) =>
       log.info("data received")
-      JSON.parseFull(data.utf8String).get.cast[Map[String, Any]] match {
-        case Some(obj) =>
-          obj.get("command") match {
-            case Some(Messages2PC.VOTE) =>
-              val replyTo = sender()
-              log.info("vote command received, replying voteOk")
-              documentsToSave = obj.get("objects") match {
-                case Some(s: List[String]) => Some(s)
-              }
+      val parsedJson: Option[Any] = JSON.parseFull(data.utf8String)
 
-              txId = obj.get("txId") match {
-                case Some(s: String) => Some(s)
-                case _ => throw new Exception("txId missing")
-              }
+      if (parsedJson.isEmpty) {
+        log.error("unparsable data received: " + data.utf8String)
+      } else {
+        parsedJson.get.cast[Map[String, Any]] match {
+          case Some(obj) =>
+            obj.get("command") match {
+              case Some(Messages2PC.VOTE) =>
+                val replyTo = sender()
+                log.info("vote command received, replying voteOk")
+                documentsToSave = obj.get("objects") match {
+                  case Some(s: List[String]) => Some(s)
+                }
 
-              respond(replyTo, Messages2PC.VOTE_OK)
-            case Some(Messages2PC.COMMIT) =>
-              val replyTo = sender()
-              log.info("commit received")
-              dbsave() onComplete {
-                case scala.util.Success(_) =>
-                  log.info("commit successful")
-                  respond(replyTo, Messages2PC.ACK)
-                  context stop self
-                case Failure(e) =>
-                  log.error("error during dbsave", e)
-                  context stop self
-              }
+                txId = obj.get("txId") match {
+                  case Some(s: String) => Some(s)
+                  case _ => throw new Exception("txId missing")
+                }
 
-            case Some(Messages2PC.ROLLBACK) =>
-              val replyTo = sender()
-              log.info("rollback received")
-              rollback() onComplete {
-                case scala.util.Success(_) =>
-                  log.info("rollback successful")
-                  respond(replyTo, Messages2PC.ACK)
-                  context stop self
-                case Failure(e) =>
-                  log.error("error during rollback", e)
-                  context stop self
-              }
-              
-            case _ => throw new Exception("unknown command")
-          }
+                respond(replyTo, Messages2PC.VOTE_OK)
+              case Some(Messages2PC.COMMIT) =>
+                val replyTo = sender()
+                log.info("commit received")
+                dbsave() onComplete {
+                  case scala.util.Success(_) =>
+                    log.info("commit successful")
+                    respond(replyTo, Messages2PC.ACK)
+                    context stop self
+                  case Failure(e) =>
+                    log.error("error during dbsave", e)
+                    context stop self
+                }
 
-        case _ =>
-          throw new IllegalStateException("unknown message: " + JSON.parseFull(data.utf8String))
+              case Some(Messages2PC.ROLLBACK) =>
+                val replyTo = sender()
+                log.info("rollback received")
+                rollback() onComplete {
+                  case scala.util.Success(_) =>
+                    log.info("rollback successful")
+                    respond(replyTo, Messages2PC.ACK)
+                    context stop self
+                  case Failure(e) =>
+                    log.error("error during rollback", e)
+                    context stop self
+                }
+
+              case _ => throw new Exception("unknown command")
+            }
+
+          case _ =>
+            throw new IllegalStateException("unknown message: " + data.utf8String)
+        }
       }
+
     case PeerClosed =>
       context stop self
     case _ =>
