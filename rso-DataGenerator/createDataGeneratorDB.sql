@@ -142,8 +142,8 @@ TRUNCATE d_sex CASCADE;
 ALTER SEQUENCE seq_d_age RESTART WITH 1;
 ALTER SEQUENCE seq_d_parties RESTART WITH 1;
 ALTER SEQUENCE seq_d_parties RESTART WITH 1;
-ALTER SEQUENCE seq_d_candidates WITH 1;
-ALTER SEQUENCE seq_d_constituencies WITH 1;
+ALTER SEQUENCE seq_d_candidates RESTART WITH 1;
+ALTER SEQUENCE seq_d_constituencies RESTART WITH 1;
 
 --
 -- Data for Name: d_age; Type: TABLE DATA; Schema: public; Owner: postgres
