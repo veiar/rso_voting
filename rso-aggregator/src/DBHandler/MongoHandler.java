@@ -92,7 +92,7 @@ public class MongoHandler {
                 public void apply(final Document document) {
                     String rowId = document.getString("rowId");
                     VoteInfo vi = new VoteInfo(
-                            document.getString("PESEL"),
+                            document.getString("Pesel"),
                             document.getInteger("Vote"),
                             document.getInteger("Constituency"),
                             document.getInteger("Gender"),
@@ -105,7 +105,7 @@ public class MongoHandler {
             aggregList.add(map);
         } catch(Exception e){
                 System.out.println("FAILED! " + new GregorianCalendar().getTime());
-                logger.log(Level.INFO, "FAILED! " + new GregorianCalendar().getTime());
+                logger.log(Level.INFO, "FAILED! " + new GregorianCalendar().getTime() + " : " + e.getClass() + ":" + e.getMessage());
             }
         }
 
