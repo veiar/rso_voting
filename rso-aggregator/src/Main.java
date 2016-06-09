@@ -4,7 +4,7 @@ import RsoAggregator.RsoAggregator;
 public class Main {
 
     public static void main(String[] args) {
-        boolean master = false;
+        boolean master = true;
         try {
             Integer arg = Integer.parseInt(args[0]);
             System.out.println(arg);

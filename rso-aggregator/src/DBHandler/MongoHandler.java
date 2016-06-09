@@ -30,11 +30,11 @@ public class MongoHandler {
     private static String m_dbName = "test";//"dbNew";
     //private static String m_dbName2 = "dbNew2";
     private static String m_port = "27017";
-    private static String m_dbCollection = /*"votes";*/"testColl";
+    private static String m_dbCollection = "votes";//"testColl";
     private static String m_dbCollection2 = "testColl2";
 
     //private static String mongoAdresses[] = {"52.39.93.231", "52.26.119.158","52.34.9.107"};
-    private static String mongoAdresses[] = {"127.0.0.1"};
+    //private static String mongoAdresses[] = {"127.0.0.1"};
     private Statistics stats;
     private Map<String, VoteInfo> mapAllData;
     private List<MongoInstance> mapMongoInstances;
@@ -219,7 +219,7 @@ public class MongoHandler {
     }
 
     private void getProperties(){
-    try {
+    //try {
         /*Scanner scanner = new Scanner(new File("/etc/hosts")).useDelimiter("\n");
         int i = 0;
             while (scanner.hasNext()){
@@ -246,7 +246,7 @@ public class MongoHandler {
             System.err.println("No MONGO_HOSTS found in /etc/hosts! Bye!");
             logger.log(Level.SEVERE, "No MONGO_HOSTS found in /etc/hosts! Bye!");
             System.exit(2);
-        }*/
+        }
         for(int i=0; i<mongoAdresses.length; ++i) {
             MongoInstance mi = new MongoInstance(
                     m_userName,
@@ -262,8 +262,8 @@ public class MongoHandler {
         logger.log(Level.SEVERE, "Exception while reading /etc/hosts! Bye!");
         System.exit(2);
 
-    }
-        /*Map<String, String> env = System.getenv();
+    }*/
+        Map<String, String> env = System.getenv();
         if(!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")){
             System.err.println("No environment variables set! Bye!");
             logger.log(Level.SEVERE, "No environment variables set! Bye!");
@@ -273,19 +273,19 @@ public class MongoHandler {
         String postgresAllHosts = env.get("POSTGRES_HOSTS");
         String[] mongoHosts = mongoAllHosts.split(",");
         String[] postgresHosts = postgresAllHosts.split(",");
-        boolean lol = false;*/
-        /*for(String t : mongoHosts){
+
+        for(String t : mongoHosts){
             MongoInstance mi = new MongoInstance(
                     m_userName,
                     m_password.toCharArray(),
-                    lol? m_dbName2 : m_dbName,
+                    m_dbName,
                     t + ":" + m_port,
-                    lol? m_dbCollection2 : m_dbCollection
+                    m_dbCollection
             );
-            lol = !lol;
+
             //mi.setConnection();
             mapMongoInstances.add(mi);  // moze uda sie pozniej polaczyc, wiec i tak dodajemy do mapy
-        }*/
+        }
         /*MongoInstance mi = new MongoInstance(
                 m_userName,
                 m_password.toCharArray(),
