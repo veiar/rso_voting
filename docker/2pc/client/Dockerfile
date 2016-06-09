@@ -5,4 +5,4 @@ EXPOSE 27017:27017
 
 WORKDIR /usr
 
-CMD mongod & java -jar 2pc-client.jar
+CMD java -jar 2pc-client.jar
