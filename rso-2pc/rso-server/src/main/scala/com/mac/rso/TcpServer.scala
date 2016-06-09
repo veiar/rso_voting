@@ -13,7 +13,7 @@ class TcpServer(port: Int) extends Actor with ActorLogging {
   import Tcp._
   import context.system
 
-  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", port))
+  IO(Tcp) ! Bind(self, new InetSocketAddress("0.0.0.0", port))
   log.info("started tcp server on port: " + port)
 
   override def receive: Receive = {
