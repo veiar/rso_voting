@@ -17,7 +17,7 @@ public class PostgresHandler {
     private static String postgresAddress[] = {"52.40.243.126"};
     private static String m_userName = "postgres";
     private static String m_password = "admin123";//"123";
-    private static String m_dbName = "results";
+    private static String m_dbName = "results1";
     private static String m_dbName2 = "results2";   // TODO tylko do testow!
     private static String m_port = "5432";
 

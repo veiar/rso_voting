@@ -30,11 +30,11 @@ public class MongoHandler {
     private static String m_dbName = "test";//"dbNew";
     //private static String m_dbName2 = "dbNew2";
     private static String m_port = "27017";
-    private static String m_dbCollection = "votes";//"testColl";
+    private static String m_dbCollection = /*"votes";*/"testColl";
     private static String m_dbCollection2 = "testColl2";
 
-    private static String mongoAdresses[] = {"52.39.93.231", "52.26.119.158","52.34.9.107"};
-    //private static String mongoAdresses[] = {"127.0.0.1"};
+    //private static String mongoAdresses[] = {"52.39.93.231", "52.26.119.158","52.34.9.107"};
+    private static String mongoAdresses[] = {"127.0.0.1"};
     private Statistics stats;
     private Map<String, VoteInfo> mapAllData;
     private List<MongoInstance> mapMongoInstances;
@@ -178,7 +178,7 @@ public class MongoHandler {
         public boolean setConnection(){
             try {
                 MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
-                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), MongoClientOptions.builder().serverSelectionTimeout(3000).build());     // timeout = 1s);
+                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), MongoClientOptions.builder().serverSelectionTimeout(5000).build());     // timeout = 1s);
                 //this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred),
                 //        MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s
                 this.mongoDB = mongoClient.getDatabase(dbName);

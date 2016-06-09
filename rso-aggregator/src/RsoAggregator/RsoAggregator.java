@@ -7,10 +7,8 @@ import DBHandler.PostgresHandler;
 import java.io.File;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
@@ -45,69 +43,79 @@ import java.util.logging.SimpleFormatter;
     }
 }
 
-    public class RsoAggregator {
+    public class RsoAggregator implements Observer {
         public static Logger logger = Logger.getLogger("RSO-Aggregator");
+        private boolean master;
+        private MongoHandler mongoDB = null;
+        private PostgresHandler postDB = null;
+        private Statistics stats = null;
+        private ConnectionHandler connectionHandler = null;
 
-        public static void main(String[] args){
-            /*String IP = "52.36.29.80";
-            try {   // tu jakis while dla shadowa, jak zwroci false to zaczyna dzialac
-                Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + IP);
-                int returnVal = p1.waitFor();
-                boolean reachable = (returnVal==0);
-                System.out.println("-------- is Reachable? " + reachable);
-            }catch(Exception e){
-                System.out.println(e.getClass() + " : " + e.getMessage() );
-            }*/
-            /*boolean master = false;
-            try{
-                Integer arg = Integer.parseInt(args[0]);
-                System.out.println(arg);
-                if(arg == 0){
-                    master = false;
-                }
-                else{
-                    master = true;
-                }
-            }catch (Exception e){
-                System.err.println("No parameters! Bye!");
-
-                //System.exit(2);
-            }
-
-            final boolean isMaster = master;
-            if(isMaster) {
-                Thread t = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ConnectionHandler connectionHandler = new ConnectionHandler(isMaster);
-                    }
-                });
-                t.start();
-            }
-            else{
-                ConnectionHandler connectionHandler = new ConnectionHandler(isMaster);
-            }
-*/
-
-
-            MongoHandler mongoDB = null;
-            PostgresHandler postDB = null;
-            Statistics stats = new Statistics();
-
-            /*class Task implements Runnable{
-                private MongoHandler mongoDB;
-                private PostgresHandler postDB;
-                Task(MongoHandler _mongoDB, PostgresHandler _postDB){
-                    this.mongoDB = _mongoDB;
-                    this.postDB = _postDB;
-                }
+        public RsoAggregator(boolean _master) {
+            this.master = _master;
+            stats = new Statistics();
+            //final RsoAggregator ag = this;
+            /*Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    mongoDB.getAllData();
-                    postDB.insertStats();
+                    ConnectionHandler connectionHandler= new ConnectionHandler(master, ag);
                 }
-            }*/
+            });
+            t.start();
+*/
+            if(master){
+                while(true) {
+                    init();
+                }
+            }
+            else{
+                    while (true) {
+                        try {
+                        Process p1 = Runtime.getRuntime().exec("ping -c 1 52.40.243.126");
+                        int ret = p1.waitFor();
+                        System.out.println("PING: " + ret);
+                        if (ret != 0) {
+                            init();
+                        }
+                        else{
+                            Thread.sleep(10000);
+                        }
+                        } catch (Exception e){
+                            System.out.println(e.getMessage());
+                        }
+                    }
+            }
+        }
 
+        public boolean getMaster(){
+            return this.master;
+        }
+
+        private void prepareDB(){
+            try {
+                mongoDB = new MongoHandler(stats);
+                postDB = new PostgresHandler(stats);
+                process();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (mongoDB != null) {
+                        mongoDB.close();
+                        logger.log(Level.INFO, "MongoDB connection closed...");
+                        System.out.println("MongoDB connection closed...");
+                    }
+                    if (postDB != null) {
+                        postDB.close();
+                        logger.log(Level.INFO, "Postgres connection closed...");
+                        System.out.println("Postgres connection closed...");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        private void createLog(){
             try {
                 String pattern = "yyyyMMddHHmmss";
                 SimpleDateFormat format = new SimpleDateFormat(pattern);
@@ -121,13 +129,23 @@ import java.util.logging.SimpleFormatter;
                 fh.setFormatter(new SimpleFormatter());
                 logger.addHandler(fh);
                 logger.log(Level.INFO, "--- RSO AGGREGATOR ---\nLog started");
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.err.println("Creating log file failed! Bye!");
                 System.exit(4);
             }
-            try{
-                mongoDB = new MongoHandler(stats);
-                postDB = new PostgresHandler(stats);
+        }
+        private void prepareConnection(){
+
+        }
+
+        private void init() {
+            createLog();
+            prepareDB();
+            //prepareConnection();
+        }
+
+        public void process() {
+            try {
                 postDB.getDictionaries();
                 mongoDB.getAllData();
                 postDB.insertStats();
@@ -145,26 +163,31 @@ import java.util.logging.SimpleFormatter;
                 //mongoDB.getResults();
                 //mongoDB.insertSome();
                 //mongoDB.getData();
-            }
-            catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 try {
                     if (mongoDB != null) {
                         mongoDB.close();
                         logger.log(Level.INFO, "MongoDB connection closed...");
                         System.out.println("MongoDB connection closed...");
                     }
-                    if (postDB != null){
+                    if (postDB != null) {
                         postDB.close();
                         logger.log(Level.INFO, "Postgres connection closed...");
                         System.out.println("Postgres connection closed...");
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+
+        @Override
+        public void update(Observable observable, Object o) {
+            // master down
+
+            // master up
+        }
     }
+
