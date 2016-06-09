@@ -255,6 +255,8 @@ public class PostgresHandler {
                             candidateMap.put(rs.getInt(1), rs.getInt(2));
                             //System.out.println(rs.getString(1) + " " + rs.getString(2));
                         }
+                        System.out.println("candidateMap size = " + candidateMap.size());
+                        logger.log(Level.INFO, "candidateMap size = " + candidateMap.size());
                         break;
                     case D_AGE_TABLENAME:
                         Map<Integer, Pair<Integer, Integer>> ageMap = stats.getAgeGroupMap();
@@ -263,6 +265,8 @@ public class PostgresHandler {
                             ageMap.put(rs.getInt(1), p);
                             //System.out.println(rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3));
                         }
+                        System.out.println("ageMap size = " + ageMap.size());
+                        logger.log(Level.INFO, "ageMap size = " + ageMap.size());
                         break;
                     default:
                         break;
