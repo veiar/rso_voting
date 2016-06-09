@@ -94,7 +94,7 @@ public class MongoHandler {
                     VoteInfo vi = new VoteInfo(
                             document.getString("PESEL"),
                             document.getInteger("Vote"),
-                            document.getInteger("VotingArea"),
+                            document.getInteger("Constituency"),
                             document.getInteger("Gender"),
                             document.getInteger("Education"),
                             rowId);
