@@ -1,24 +1,31 @@
 package DBHandler;
 
+import RsoAggregator.RsoAggregator;
+
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.Observable;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-public class ConnectionHandler {
-
+public class ConnectionHandler extends Observable {
+    public static int MASTER_DOWN = 11;
+    public static int MASTER_UP = 12;
+    public static int MSG_OK = 21;
+    public static int MSG_IS_ALIVE = 22;
     private Socket socketServer, socketClient, socket;
     ServerSocket serverSocket;
     private boolean master;
 
 
-    public ConnectionHandler(boolean _master) {
+    public ConnectionHandler(boolean _master, RsoAggregator _rsoAggregator) {
         this.master = _master;
+        addObserver(_rsoAggregator);
+
         if(master) {
             ServerRSO server = new ServerRSO();
-            server.run();
-
+            //server.run();
         }
         else{
             ClientRSO client = new ClientRSO();
@@ -26,76 +33,73 @@ public class ConnectionHandler {
         }
     }
 
-    private class ServerRSO extends Thread{
+    private class ServerRSO {//extends Thread{
         ServerSocket providerSocket;
         Socket connection = null;
         ObjectOutputStream out;
         ObjectInputStream in;
-        String message;
-        ServerRSO(){}
-
-        @Override
-        public void run()
-        {
-            try{
-                //1. creating a server socket
-                providerSocket = new ServerSocket(8080);
-                //2. Wait for connection
-                System.out.println("Waiting for connection");
-                connection = providerSocket.accept();
-                System.out.println("Connection received from " + connection.getInetAddress().getHostName());
-                //3. get Input and Output streams
-                out = new ObjectOutputStream(connection.getOutputStream());
-                out.flush();
-                in = new ObjectInputStream(connection.getInputStream());
-                sendMessage("Connection successful");
-                //4. The two parts communicate via the input and output streams
-                do{
-                    try{
-                        message = (String)in.readObject();
-                        System.out.println("client>" + message);
-                        if (message.equals("bye"))
-                            sendMessage("bye");
+        int message;
+        ServerRSO() {
+            new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        //1. creating a server socket
+                        providerSocket = new ServerSocket(8080);
+                        //2. Wait for connection
+                        System.out.println("Waiting for connection");
+                        connection = providerSocket.accept();
+                        System.out.println("Connection received from " + connection.getInetAddress().getHostName());
+                        //3. get Input and Output streams
+                        out = new ObjectOutputStream(connection.getOutputStream());
+                        out.flush();
+                        in = new ObjectInputStream(connection.getInputStream());
+                        //sendMessage("Connection successful");
+                        //4. The two parts communicate via the input and output streams
+                        do {
+                            try {
+                                message = in.read();
+                                System.out.println("client>" + message);
+                                if (message == MSG_IS_ALIVE)
+                                    sendMessage(MSG_OK);
+                            } catch (SocketTimeoutException e2) {
+                                System.err.println("TIMEOUT while waiting for slave's response!");
+                            }
+                        } while (true);
+                        //System.exit(0);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    } finally {
+                        try {
+                            in.close();
+                            out.close();
+                            providerSocket.close();
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
                     }
-                    catch(ClassNotFoundException classnot){
-                        System.err.println("Data received in unknown format");
-                    }
-                }while(!message.equals("bye"));
-                System.exit(0);
-            }
-            catch(IOException ioException){
-                ioException.printStackTrace();
-            }
-            finally{
-                try{
-                    in.close();
-                    out.close();
-                    providerSocket.close();
                 }
-                catch(IOException ioException){
-                    ioException.printStackTrace();
-                }
-            }
-        }
-        void sendMessage(String msg)
-        {
-            try{
-                out.writeObject(msg);
-                out.flush();
-                System.out.println("server>" + msg);
-            }
-            catch(IOException ioException){
-                ioException.printStackTrace();
-            }
+            }.run();
         }
 
-    }
+                void sendMessage(int msg) {
+                    try {
+                        out.writeObject(msg);
+                        out.flush();
+                        System.out.println("server>" + msg);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+
+        }
+
 
     public class ClientRSO extends Thread{
-        Socket requestSocket;
-        ObjectOutputStream out;
-        ObjectInputStream in;
-        String message;
+        Socket requestSocket = null;
+        ObjectOutputStream out = null;
+        ObjectInputStream in = null;
+        int message;
         ClientRSO(){}
 
         @Override
@@ -103,8 +107,10 @@ public class ConnectionHandler {
         {
             try{
                 //1. creating a socket to connect to the server
-                requestSocket = new Socket("localhost", 8080);
-                System.out.println("Connected to localhost in port 2004");
+                requestSocket = new Socket();
+                requestSocket.setSoTimeout(5000);  // czekam 5s na odp
+                requestSocket.connect(new InetSocketAddress("localhost", 8080), 10000);
+                System.out.println("Connected to localhost in port 8080");
                 //2. get Input and Output streams
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
                 out.flush();
@@ -112,19 +118,24 @@ public class ConnectionHandler {
                 //3: Communicating with the server
                 do{
                     try{
-                        message = (String)in.readObject();
+                        sendMessage(MSG_IS_ALIVE);
+                        message = in.read();
                         System.out.println("server>" + message);
-                        sendMessage("Hi my server");
-                        message = "bye";
-                        sendMessage(message);
+                        //sendMessage("Hi my server");
+                        wait(10000);
                     }
-                    catch(ClassNotFoundException classNot){
-                        System.err.println("data received in unknown format");
+                    catch(InterruptedException e1){
+                        System.err.println("ERROR while communicating between master and slave!");
                     }
-                }while(!message.equals("bye"));
-                System.exit(0);
+                    catch(SocketTimeoutException e2){
+                        System.err.println("TIMEOUT while waiting for master's response!");
+                    }
+                }while(true);
+                //System.exit(0);
             }
-
+            catch (ConnectException ec){
+                System.out.println("Unable to connect to master!");
+            }
             catch(UnknownHostException unknownHost){
                 System.err.println("You are trying to connect to an unknown host!");
             }
@@ -134,9 +145,15 @@ public class ConnectionHandler {
             finally{
                 //4: Closing connection
                 try{
-                    in.close();
-                    out.close();
-                    requestSocket.close();
+                    if(in != null){
+                        in.close();
+                    }
+                    if(out != null) {
+                        out.close();
+                    }
+                    if(requestSocket != null){
+                        requestSocket.close();
+                    }
                 }
                 catch(IOException ioException){
                     ioException.printStackTrace();
@@ -144,7 +161,7 @@ public class ConnectionHandler {
             }
 
         }
-        void sendMessage(String msg)
+        void sendMessage(int msg)
         {
             try{
                 out.writeObject(msg);

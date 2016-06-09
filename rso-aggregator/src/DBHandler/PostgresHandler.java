@@ -14,7 +14,7 @@ public class PostgresHandler {
     public final static String D_CANDIDATES_TABLENAME = "d_candidates";
     public final static String[] D_AGE_COLS = {"age_id", "split_part(age_group, '-', 1), split_part(age_group, '-', 2)"};
     public final static String D_AGE_TABLENAME = "d_age";
-    private static String postgresAddress[] = {"52.40.243.126"};
+    //private static String postgresAddress[] = {"52.40.243.126"};
     private static String m_userName = "postgres";
     private static String m_password = "admin123";//"123";
     private static String m_dbName = "results";
@@ -134,8 +134,28 @@ public class PostgresHandler {
     }
 
     private void getProperties() {
-        try {
+
+        Map<String, String> env = System.getenv();
+        if (!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")) {
+            System.err.println("No environment variables set! Bye!");
+            logger.log(Level.SEVERE, "No environment variables set! Bye!");
+            System.exit(2);
+        }
+        String postgresAllHosts = env.get("POSTGRES_HOSTS");
+        String[] postgresHosts = postgresAllHosts.split(",");
+
+        for (String t : postgresHosts) {
             PostgresInstance pi = new PostgresInstance(
+                    m_userName,
+                    m_password,
+                    m_dbName,
+                    t + ":" + m_port
+            );
+            mapPostgresInstances.add(pi);
+        }
+
+        //try {
+          /*  PostgresInstance pi = new PostgresInstance(
                     m_userName,
                     m_password,
                     m_dbName,
@@ -168,13 +188,13 @@ public class PostgresHandler {
                 logger.log(Level.SEVERE, "No POSTGRES_HOSTS found in /etc/hosts! Bye!");
                 System.exit(2);
             }*/
-
+/*
         } catch (Exception e){
             System.err.println("Exception while reading /etc/hosts! Bye!");
             logger.log(Level.SEVERE, "Exception while reading /etc/hosts! Bye!");
             System.exit(2);
 
-        }
+        }*/
         /*
         Map<String, String> env = System.getenv();
         if (!env.containsKey("MONGO_HOSTS") || !env.containsKey("POSTGRES_HOSTS")) {
