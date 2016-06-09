@@ -15,10 +15,12 @@ function init(){
 
 function getFrequency() {
     init();
+    $('div.spinner').fadeIn();
     $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getFrequency.json",
         success: function(data) {
+            $('div.spinner').hide();
             showPieChart([data, 100 - data], ["Głosujących", "Niegłosujących"]);
         },
         error: function(data) {debugger}
@@ -27,10 +29,12 @@ function getFrequency() {
 
 function getPartyPercentage() {
     init();
+    $('div.spinner').fadeIn();
     $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getPartyPercentageData.json",
         success: function(data) {
+            $('div.spinner').hide();
             showPieChart(data.votes, data.labels);
         },
         error: function(data) {}
@@ -39,10 +43,12 @@ function getPartyPercentage() {
 
 function getConstituencies() {
     init();
+    $('div.spinner').fadeIn();
     $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getConstituenciesPercentageData.json",
         success: function(data) {
+            $('div.spinner').hide();
             showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
@@ -51,16 +57,18 @@ function getConstituencies() {
 
 function getCandidates() {
     init();
-    $('.col-md-9').css('width','75%');
+    $('div.spinner').fadeIn();
     showPartyBlock();
 }
 
 function getAge() {
     init();
+    $('div.spinner').fadeIn();
     $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getAgePercentageData.json",
         success: function(data) {
+            $('div.spinner').hide();
             showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
@@ -69,10 +77,12 @@ function getAge() {
 
 function getEducation() {
     init();
+    $('div.spinner').fadeIn();
     $('.col-md-9').css('width','100%');
     $.ajax({
         url: "/RSO/default/getEducationPercentageData.json",
         success: function(data) {
+            $('div.spinner').hide();
             showMixedColumnChart(data.votes, data.districts)
         },
         error: function(data) {}
@@ -82,10 +92,12 @@ function getEducation() {
 function getSex(item) {
     
     removeCurrentChart();
+    
     $.ajax({
         url: "/RSO/default/getSexPercentageData.json",
         data: {sexId:item},
-        success: function(data) {       
+        success: function(data) {
+            $('div.spinner').hide();
             showPieChart(data.votes, data.labels)
         },
         error: function(data) {debugger}
@@ -97,7 +109,8 @@ function getCandidatesFromParty(item){
     $.ajax({
         url: "/RSO/default/getCandidatePercentageData.json",
         data: {partyId:item},
-        success: function(data) {       
+        success: function(data) {
+            $('div.spinner').hide();
             showPieChart(data.votes, data.labels)
         },
         error: function(data) {debugger}
@@ -105,8 +118,8 @@ function getCandidatesFromParty(item){
 }
 
 function getSexList() {
-    init();
-    $('.col-md-9').css('width','75%');
+    init();    
+    $('div.spinner').fadeIn();    
     showSexBlock();
 }
 
@@ -246,7 +259,8 @@ function showPartyBlock()
                     addPartyBlock(data.names[i], data.ids[i]);
                 }
             }
-            
+            $('div.spinner').hide();
+            $('.col-md-9').css('width','75%');
             $('#partyPanel').fadeIn();
             $('#chooseParameterMessage').html("Proszę wybrać partię").show();
         },
@@ -268,6 +282,7 @@ function addPartyBlock(element, index){
     btn.appendChild(text);
     btn.addEventListener('click', function(){
         $('#chooseParameterMessage').hide();
+        $('div.spinner').show();
         getCandidatesFromParty(index);
     });
 
@@ -302,7 +317,8 @@ function showSexBlock()
                     addSexBlock(data.names[i], data.ids[i]);
                 }
             }
-            
+            $('div.spinner').hide();
+            $('.col-md-9').css('width','75%');
             $('#sexPanel').fadeIn();
             $('#chooseParameterMessage').html("Proszę wybrać płeć").show();
         },
@@ -324,6 +340,7 @@ function addSexBlock(element, index){
     btn.appendChild(text);
     btn.addEventListener('click', function(){
         $('#chooseParameterMessage').hide();
+        $('div.spinner').fadeIn();
         getSex(index);
     });
 
@@ -347,7 +364,7 @@ function hideSexBlock(){
 function showCandidatesPanel(){
     $('.charts').hide();
     $('.col-md-9').css('width','100%');
-    $('#candidates').show();
+    $('div.spinner').fadeIn();
     $.ajax({
         url: "/RSO/default/candidates.json",
         success: function(data) {
@@ -369,6 +386,8 @@ function showCandidatesPanel(){
             html += "</ul>";
             
             $('#candidates').html(html);
+            $('div.spinner').fadeOut();
+            $('#candidates').show();
         },
         error: function(data) {
             debugger;

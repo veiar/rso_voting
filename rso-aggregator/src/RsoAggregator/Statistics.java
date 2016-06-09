@@ -226,7 +226,10 @@ public class Statistics extends Dictionary{
         final Map<Integer, Integer> candPartyMap = this.getDictCandidateMap();
         for (Map.Entry<String, MongoHandler.VoteInfo> e : map.entrySet()){
             MongoHandler.VoteInfo vi = e.getValue();
-            int party_id = candPartyMap.get(vi.getVote());
+            int party_id = 1;
+            if(candPartyMap.containsKey(vi.getVote())){
+                party_id = candPartyMap.get(vi.getVote());
+            }
             m_calculateResPartyAge(vi, party_id);
             m_calculateResPartyEducation(vi, party_id);
             m_calculateResPartySex(vi, party_id);
