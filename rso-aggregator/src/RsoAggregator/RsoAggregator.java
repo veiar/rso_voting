@@ -66,6 +66,11 @@ import java.util.logging.SimpleFormatter;
             if(master){
                 while(true) {
                     init();
+                    try {
+                        Thread.sleep(10000);
+                    }catch (Exception e){
+
+                    }
                 }
             }
             else{

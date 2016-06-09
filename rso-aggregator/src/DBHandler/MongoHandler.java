@@ -73,9 +73,11 @@ public class MongoHandler {
 
     public void getAllData(){
         List<Map<String, VoteInfo>> aggregList = new ArrayList<>();
+
         for(int i=0; i<mapMongoInstances.size(); ++i){
             System.out.println("Getting data from " + i + ". Mongo instance... " + new GregorianCalendar().getTime());
             logger.log(Level.INFO, "Getting data from " + i + ". Mongo instance... " + new GregorianCalendar().getTime());
+            try{
             MongoInstance mi = mapMongoInstances.get(i);
             if(!mi.checkStatus()){
                 continue;
@@ -101,7 +103,12 @@ public class MongoHandler {
                 }
             });
             aggregList.add(map);
+        } catch(Exception e){
+                System.out.println("FAILED! " + new GregorianCalendar().getTime());
+                logger.log(Level.INFO, "FAILED! " + new GregorianCalendar().getTime());
+            }
         }
+
         removeDuplicates(aggregList);
         stats.calculateAll(this.mapAllData);
     }
@@ -178,7 +185,7 @@ public class MongoHandler {
         public boolean setConnection(){
             try {
                 MongoCredential cred = MongoCredential.createCredential(user, dbName, pass);
-                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), MongoClientOptions.builder().serverSelectionTimeout(5000).build());     // timeout = 1s);
+                this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), MongoClientOptions.builder().serverSelectionTimeout(8000).build());     // timeout = 1s);
                 //this.mongoClient = new MongoClient(new ServerAddress(this.dbAddress), Arrays.asList(cred),
                 //        MongoClientOptions.builder().serverSelectionTimeout(1000).build());     // timeout = 1s
                 this.mongoDB = mongoClient.getDatabase(dbName);
