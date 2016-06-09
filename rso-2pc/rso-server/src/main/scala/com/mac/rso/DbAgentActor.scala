@@ -22,13 +22,9 @@ import scala.util.parsing.json.{JSON, JSONObject}
 /**
   * Created by mac on 17.04.16.
   */
-class DbAgentActor extends Actor {
+class DbAgentActor(votes: MongoCollection[Document]) extends Actor {
 
   import Tcp._
-
-  val mongoClient: MongoClient = MongoClient()
-  val database: MongoDatabase = mongoClient.getDatabase("test")
-  val votes: MongoCollection[Document] = database.getCollection("votes")
 
   var documentsToSave: Option[List[String]] = None
   var txId: Option[String] = None
