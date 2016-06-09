@@ -1,4 +1,4 @@
-FROM mateuszj92/statsMaster
+FROM mateuszj92/statsmaster
 
 EXPOSE 27017:27017
 
